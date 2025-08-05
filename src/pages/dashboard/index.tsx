@@ -4,6 +4,7 @@ import { useTranslation } from 'next-i18next'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import UploadModal from '@/components/dashboard/UploadModal'
 import { 
   Upload, 
   FileText, 
@@ -270,143 +271,10 @@ export default function DashboardPage() {
   )
 }
 
-// Upload Modal Component
-function UploadModal({ 
-  isOpen, 
-  onClose, 
-  onUpload, 
-  isRTL 
-}: { 
-  isOpen: boolean
-  onClose: () => void
-  onUpload: (uploadResponse: { lessonPlan: LessonPlan }) => void
-  isRTL: boolean
-}) {
-  const [dragActive, setDragActive] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [formData, setFormData] = useState({
-    title: '',
-    subject: '',
-    tags: ''
-  })
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true)
-    } else if (e.type === 'dragleave') {
-      setDragActive(false)
-    }
+export async function getServerSideProps({ locale }: { locale: string }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
   }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setSelectedFile(e.dataTransfer.files[0])
-    }
-  }
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0])
-    }
-  }
-
-  const handleUpload = async () => {
-    if (!selectedFile || !formData.title) return
-    
-    setIsUploading(true)
-    
-    // Simulate upload - replace with actual upload logic
-    setTimeout(() => {
-      const newPlan: LessonPlan = {
-        id: Date.now().toString(),
-        title: formData.title,
-        filename: selectedFile.name,
-        file_size: selectedFile.size,
-        upload_date: new Date().toISOString(),
-        age_group: '0-6', // Default age group for early childhood
-        subject: formData.subject,
-        language: isRTL ? 'ar' : 'en'
-      }
-      
-      onUpload({ lessonPlan: newPlan })
-      setIsUploading(false)
-    }, 2000)
-  }
-
-  if (!isOpen) return null
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className={`text-2xl font-bold text-gray-900 ${isRTL ? 'font-arabic text-right' : ''}`}>
-            {isRTL ? 'ارفع خطة درس جديدة' : 'Upload New Lesson Plan'}
-          </h2>
-        </div>
-
-        <div className="p-6 space-y-6">
-          {/* File Upload Area */}
-          <div
-            className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-              dragActive 
-                ? 'border-blue-500 bg-blue-50' 
-                : selectedFile
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-300 hover:border-blue-400'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <input
-              type="file"
-              accept=".pdf,.docx,.txt"
-              onChange={handleFileSelect}
-              className="hidden"
-              id="file-upload"
-            />
-            <label htmlFor="file-upload" className="cursor-pointer">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Upload className="w-8 h-8 text-blue-600" />
-              </div>
-              {selectedFile ? (
-                <div>
-                  <p className={`text-lg font-semibold text-green-700 mb-2 ${isRTL ? 'font-arabic' : ''}`}>
-                    ✓ {selectedFile.name}
-                  </p>
-                  <p className={`text-sm text-gray-600 ${isRTL ? 'font-arabic' : ''}`}>
-                    {isRTL ? 'انقر لاختيار ملف آخر' : 'Click to select a different file'}
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <p className={`text-lg font-semibold text-gray-700 mb-2 ${isRTL ? 'font-arabic' : ''}`}>
-                    {isRTL ? 'اسحب وأفلت ملفك هنا أو انقر للتصفح' : 'Drag and drop your file here or click to browse'}
-                  </p>
-                  <p className={`text-sm text-gray-500 ${isRTL ? 'font-arabic' : ''}`}>
-                    {isRTL ? 'PDF, DOCX, TXT - حد أقصى 10 ميجابايت' : 'PDF, DOCX, TXT - Max 10MB'}
-                  </p>
-                </div>
-              )}
-            </label>
-          </div>
-
-          {/* Form Fields */}
-          <div className="space-y-4">
-            <div>
-              <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'font-arabic text-right' : ''}`}>
-                {isRTL ? 'عنوان الدرس *' : 'Lesson Title *'}
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                className={`
+}
