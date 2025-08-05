@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { GetStaticProps } from 'next'
 import { useTranslation } from 'next-i18next'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import Link from 'next/link'
@@ -260,10 +259,10 @@ export default function SignUp() {
   )
 }
 
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
+export async function getServerSideProps({ locale }: { locale: string }) {
   return {
     props: {
-      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+      ...(await serverSideTranslations(locale, ['common'])),
     },
   }
 } 

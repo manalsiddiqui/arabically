@@ -124,10 +124,10 @@ ${context}
 
 Provide helpful and practical advice based on this content. Mention the lesson name when referencing it.`
 
-  const messages = [
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
     { role: 'system', content: systemMessage },
     ...chatHistory.slice(-4).map(msg => ({
-      role: msg.sender === 'user' ? 'user' : 'assistant',
+      role: (msg.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
       content: msg.content
     })),
     { role: 'user', content: message }
@@ -161,7 +161,7 @@ You are trained by expert teachers and specialize in:
 
 Provide helpful general advice about Arabic teaching.`
 
-  const messages = [
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
     { role: 'system', content: systemMessage },
     { role: 'user', content: message }
   ]
