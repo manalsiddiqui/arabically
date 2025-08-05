@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
-import { generateEmbedding, generateResponse } from '@/lib/ai/openai'
+import { generateEmbedding, generateChatResponse } from '@/lib/ai/openai'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -127,7 +127,7 @@ Provide helpful and practical advice based on this content. Mention the lesson n
     { role: 'user', content: message }
   ]
 
-  return await generateResponse(messages)
+  return await generateChatResponse(messages)
 }
 
 async function generateGeneralResponse(
@@ -161,7 +161,7 @@ Provide helpful general advice about Arabic teaching.`
   ]
 
   try {
-    const response = await generateResponse(messages)
+    const response = await generateChatResponse(messages)
     res.status(200).json({ response })
   } catch (error) {
     console.error('General response error:', error)
