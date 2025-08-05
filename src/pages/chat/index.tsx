@@ -1,76 +1,69 @@
-import { useState, useEffect, useRef } from 'react'
-import { GetStaticProps } from 'next'
+import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import { useTranslation } from 'next-i18next'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
-import { useRouter } from 'next/router'
-import { Send, Bot, User, ArrowLeft, Lightbulb, BookOpen, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { 
+  MessageCircle, 
+  Send, 
+  Upload,
+  Sparkles,
+  BookOpen,
+  Users,
+  Target
+} from 'lucide-react'
 
-type Message = {
-  role: 'user' | 'assistant'
+interface Message {
+  id: string
   content: string
+  sender: 'user' | 'ai'
   timestamp: Date
 }
 
 export default function ChatPage() {
-  const { t } = useTranslation('common')
   const router = useRouter()
-  const isRTL = router.locale === 'ar'
+  const { locale } = router
+  const isRTL = locale === 'ar'
+  const { t } = useTranslation('common')
 
   const [messages, setMessages] = useState<Message[]>([])
-  const [currentMessage, setCurrentMessage] = useState('')
+  const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    // Add welcome message
-    setMessages([
-      {
-        role: 'assistant',
-        content: isRTL
-          ? `مرحباً! أنا مساعدك في تدريس العربية. أستطيع أن أساعدك في تطوير خطط الدروس، اقتراح الأنشطة، وتقديم نصائح تعليمية. كيف يمكنني مساعدتك اليوم؟`
-          : `Hello! I'm your Arabic teaching assistant. I can help you develop lesson plans, suggest activities, and provide teaching tips. How can I help you today?`,
-        timestamp: new Date(),
-      },
-    ])
-  }, [isRTL])
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages, isTyping])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  useEffect(scrollToBottom, [messages])
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!inputValue.trim() || isLoading) return
 
-    if (!currentMessage.trim() || isLoading) return
+    const userMessage = inputValue.trim()
+    const newUserMessage: Message = {
+      id: Date.now().toString(),
+      content: userMessage,
+      sender: 'user',
+      timestamp: new Date()
+    }
 
-    const userMessage = currentMessage.trim()
-    setCurrentMessage('')
+    setMessages(prev => [...prev, newUserMessage])
+    setInputValue('')
     setIsLoading(true)
     setIsTyping(true)
 
-    // Add user message
-    const userMsg: Message = {
-      role: 'user',
-      content: userMessage,
-      timestamp: new Date(),
-    }
-    setMessages(prev => [...prev, userMsg])
-
     try {
-      const response = await fetch('/api/chat/simple', {
+      // Use the comprehensive RAG endpoint that searches ALL lesson plans
+      const response = await fetch('/api/chat/comprehensive', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: userMessage,
-          isRTL: isRTL,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: userMessage, 
+          chatHistory: messages.slice(-5),
+          language: isRTL ? 'ar' : 'en'
         }),
       })
 
@@ -78,27 +71,26 @@ export default function ChatPage() {
         throw new Error('Failed to get response')
       }
 
-      const { response: aiResponse } = await response.json()
-
-      // Add AI response
-      const aiMsg: Message = {
-        role: 'assistant',
-        content: aiResponse,
-        timestamp: new Date(),
+      const data = await response.json()
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: data.response,
+        sender: 'ai',
+        timestamp: new Date()
       }
-      setMessages(prev => [...prev, aiMsg])
-    } catch (error) {
-      console.error('Chat error:', error)
 
-      // Add error message
-      const errorMsg: Message = {
-        role: 'assistant',
-        content: isRTL
+      setMessages(prev => [...prev, aiMessage])
+    } catch (error) {
+      console.error('Error:', error)
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: isRTL 
           ? 'عذراً، حدث خطأ. يرجى المحاولة مرة أخرى.'
           : 'Sorry, there was an error. Please try again.',
-        timestamp: new Date(),
+        sender: 'ai',
+        timestamp: new Date()
       }
-      setMessages(prev => [...prev, errorMsg])
+      setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
       setIsTyping(false)
@@ -106,202 +98,183 @@ export default function ChatPage() {
   }
 
   const exampleQuestions = isRTL ? [
-    "كيف أُعدل درس الحروف لطفل عمره 5 سنوات؟",
-    "ما الأنشطة المناسبة لتعليم القراءة؟",
-    "كيف أجعل درس النحو أكثر متعة؟",
-    "ما طرق التقييم للمرحلة الابتدائية؟"
+    'كيف يمكنني جعل درس الحروف أكثر تفاعلاً؟',
+    'ما هي أفضل طريقة لتعليم الأطفال الأرقام؟',
+    'اقترح أنشطة لدرس المفردات',
+    'كيف أقيم فهم الطلاب للدرس؟'
   ] : [
-    "How can I adapt a letters lesson for a 5-year-old?",
-    "What activities work well for teaching reading?",
-    "How can I make grammar lessons more fun?",
-    "What assessment methods work for elementary level?"
+    'How can I make letter lessons more interactive?',
+    'What\'s the best way to teach numbers to children?',
+    'Suggest activities for vocabulary lessons',
+    'How do I assess student understanding?'
   ]
 
-  const handleExampleClick = (question: string) => {
-    setCurrentMessage(question)
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-secondary-50 to-primary-50">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 px-4 py-4 sm:px-6 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <Link
-            href="/"
-            className="flex items-center justify-center w-12 h-12 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-200 group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          </Link>
-
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-white" />
+      <div className="bg-white border-b border-secondary-200 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-desert rounded-full flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white" />
               </div>
-              <h1 className={`text-xl font-bold text-gray-900 ${isRTL ? 'font-arabic' : ''}`}>
-                {isRTL ? 'مساعد تدريس العربية' : 'Arabic Teaching Assistant'}
-              </h1>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500 ml-13">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span>{isRTL ? 'متصل' : 'Online'}</span>
-              </div>
-              <span>•</span>
-              <div className="flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                <span>GPT-3.5</span>
+              <div>
+                <h1 className={`text-xl font-bold text-neutral-900 ${isRTL ? 'font-arabic' : ''}`}>
+                  {isRTL ? 'هدايا - مساعد المعلم الذكي' : 'HedAia - AI Teaching Assistant'}
+                </h1>
+                <p className={`text-sm text-neutral-600 ${isRTL ? 'font-arabic' : ''}`}>
+                  {isRTL ? 'مدرب على جميع خطط دروس أرابيكالي' : 'Trained on all Arabically lesson plans'}
+                </p>
               </div>
             </div>
-          </div>
-
-          <button
-            onClick={() => router.push(router.asPath, router.asPath, { 
-              locale: router.locale === 'en' ? 'ar' : 'en' 
-            })}
-            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-          >
-            🌍 {router.locale === 'en' ? 'العربية' : 'English'}
-          </button>
-        </div>
-      </div>
-
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6">
-          <div className="space-y-6">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
-              >
-                {message.role === 'assistant' && (
-                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
-                    <Bot className="w-5 h-5 text-white" />
-                  </div>
-                )}
-
-                <div
-                  className={`max-w-3xl rounded-2xl px-6 py-4 shadow-lg ${
-                    message.role === 'user'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                      : 'bg-white border border-gray-100 text-gray-800'
-                  } ${isRTL ? 'font-arabic' : ''}`}
-                  dir={isRTL ? 'rtl' : 'ltr'}
-                >
-                  <div className="whitespace-pre-wrap break-words leading-relaxed">
-                    {message.content}
-                  </div>
-                  <div className={`text-xs mt-3 ${message.role === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-
-                {message.role === 'user' && (
-                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-gray-400 to-gray-500 rounded-xl flex items-center justify-center shadow-lg">
-                    <User className="w-5 h-5 text-white" />
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {isTyping && (
-              <div className="flex gap-4 justify-start animate-fadeIn">
-                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <Bot className="w-5 h-5 text-white" />
-                </div>
-                <div className="bg-white border border-gray-100 rounded-2xl px-6 py-4 shadow-lg">
-                  <div className="flex gap-2">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
+            
+            <Link
+              href="/dashboard"
+              className={`flex items-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors ${isRTL ? 'font-arabic' : ''}`}
+            >
+              <Upload className="w-4 h-4" />
+              {isRTL ? 'إدارة الدروس' : 'Manage Lessons'}
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Example Questions */}
-      {messages.length <= 1 && (
-        <div className="bg-white/80 backdrop-blur-lg border-t border-gray-200/50 px-4 py-6 sm:px-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg flex items-center justify-center">
-                <Lightbulb className="w-4 h-4 text-white" />
-              </div>
-              <span className={`text-lg font-semibold text-gray-800 ${isRTL ? 'font-arabic' : ''}`}>
-                {isRTL ? 'جرب أن تسأل:' : 'Try asking:'}
-              </span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {exampleQuestions.map((question, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleExampleClick(question)}
-                  className={`group text-sm px-4 py-3 bg-gradient-to-r from-gray-50 to-white hover:from-blue-50 hover:to-indigo-50 border border-gray-200 hover:border-blue-300 rounded-xl transition-all duration-200 text-left hover:shadow-md transform hover:-translate-y-1 ${isRTL ? 'font-arabic text-right' : ''}`}
-                  dir={isRTL ? 'rtl' : 'ltr'}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                      <span className="text-blue-600 text-xs">💡</span>
+      {/* Chat Interface */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-2xl shadow-lg border border-secondary-200 h-[600px] flex flex-col">
+          
+          {/* Welcome Message */}
+          {messages.length === 0 && (
+            <div className="flex-1 flex items-center justify-center p-8">
+              <div className="text-center max-w-2xl">
+                <div className="w-16 h-16 bg-gradient-desert rounded-full flex items-center justify-center mx-auto mb-6">
+                  <BookOpen className="w-8 h-8 text-white" />
+                </div>
+                <h2 className={`text-2xl font-bold text-neutral-900 mb-4 ${isRTL ? 'font-arabic' : ''}`}>
+                  {isRTL ? 'مرحباً بك في هدايا!' : 'Welcome to HedAia!'}
+                </h2>
+                <p className={`text-neutral-600 mb-8 leading-relaxed ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+                  {isRTL 
+                    ? 'أنا مساعدك الذكي المدرب على جميع خطط دروس أرابيكالي. اسألني عن أي شيء متعلق بتدريس العربية وسأقدم لك نصائح مبنية على خبرة المعلمين.'
+                    : 'I\'m your AI assistant trained on all Arabically lesson plans. Ask me anything about Arabic teaching and I\'ll provide advice based on expert teacher knowledge.'
+                  }
+                </p>
+                
+                {/* Example Questions */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
+                  {exampleQuestions.map((question, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setInputValue(question)}
+                      className={`p-3 text-left bg-secondary-50 hover:bg-primary-50 border border-secondary-200 hover:border-primary-300 rounded-lg transition-all ${isRTL ? 'font-arabic text-right' : ''}`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <MessageCircle className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-neutral-700">{question}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Features */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div className="p-4">
+                    <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <BookOpen className="w-6 h-6 text-primary-600" />
                     </div>
-                    <span className="text-gray-700 group-hover:text-gray-900 leading-relaxed">
-                      {question}
-                    </span>
+                    <h3 className={`font-semibold text-neutral-900 mb-2 ${isRTL ? 'font-arabic' : ''}`}>
+                      {isRTL ? 'جميع الدروس' : 'All Lessons'}
+                    </h3>
+                    <p className={`text-xs text-neutral-600 ${isRTL ? 'font-arabic' : ''}`}>
+                      {isRTL ? 'مدرب على كامل مكتبة دروس أرابيكالي' : 'Trained on entire Arabically lesson library'}
+                    </p>
                   </div>
-                </button>
-              ))}
+                  <div className="p-4">
+                    <div className="w-12 h-12 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Users className="w-6 h-6 text-accent-600" />
+                    </div>
+                    <h3 className={`font-semibold text-neutral-900 mb-2 ${isRTL ? 'font-arabic' : ''}`}>
+                      {isRTL ? 'خبرة المعلمين' : 'Teacher Expertise'}
+                    </h3>
+                    <p className={`text-xs text-neutral-600 ${isRTL ? 'font-arabic' : ''}`}>
+                      {isRTL ? 'مبني على خبرة معلمين متخصصين' : 'Built on expert teacher knowledge'}
+                    </p>
+                  </div>
+                  <div className="p-4">
+                    <div className="w-12 h-12 bg-earth-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Target className="w-6 h-6 text-earth-600" />
+                    </div>
+                    <h3 className={`font-semibold text-neutral-900 mb-2 ${isRTL ? 'font-arabic' : ''}`}>
+                      {isRTL ? 'نصائح عملية' : 'Practical Tips'}
+                    </h3>
+                    <p className={`text-xs text-neutral-600 ${isRTL ? 'font-arabic' : ''}`}>
+                      {isRTL ? 'اقتراحات جاهزة للتطبيق في الصف' : 'Ready-to-use classroom suggestions'}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Message Input */}
-      <div className="bg-white/80 backdrop-blur-lg border-t border-gray-200/50 px-4 py-6 sm:px-6 sticky bottom-0">
-        <div className="max-w-4xl mx-auto">
-          <form onSubmit={handleSendMessage} className="flex gap-4">
-            <div className="flex-1 relative">
+          {/* Messages */}
+          {messages.length > 0 && (
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] p-4 rounded-2xl ${
+                      message.sender === 'user'
+                        ? 'bg-gradient-desert text-white'
+                        : 'bg-secondary-100 text-neutral-800'
+                    } ${isRTL ? 'font-arabic' : ''}`}
+                    dir={isRTL ? 'rtl' : 'ltr'}
+                  >
+                    <p className="whitespace-pre-wrap">{message.content}</p>
+                  </div>
+                </div>
+              ))}
+              
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-secondary-100 p-4 rounded-2xl">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+
+          {/* Input Form */}
+          <div className="border-t border-secondary-200 p-4">
+            <form onSubmit={handleSendMessage} className="flex gap-3">
               <input
                 type="text"
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                placeholder={isRTL ? 'اسأل عن تدريس العربية...' : 'Ask about Arabic teaching...'}
-                disabled={isLoading}
-                className={`w-full px-6 py-4 pr-12 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 bg-white shadow-lg text-lg placeholder-gray-400 transition-all duration-200 ${isRTL ? 'font-arabic text-right' : ''}`}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={isRTL ? 'اكتب سؤالك هنا...' : 'Type your question here...'}
+                className={`flex-1 px-4 py-3 border border-secondary-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none ${isRTL ? 'font-arabic text-right' : ''}`}
                 dir={isRTL ? 'rtl' : 'ltr'}
+                disabled={isLoading}
               />
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <Bot className="w-5 h-5" />
-              </div>
-            </div>
-            <button
-              type="submit"
-              disabled={!currentMessage.trim() || isLoading}
-              className={`px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:to-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold ${isRTL ? 'font-arabic' : ''}`}
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
+              <button
+                type="submit"
+                disabled={isLoading || !inputValue.trim()}
+                className="px-6 py-3 bg-gradient-desert text-white rounded-xl hover:from-primary-700 hover:to-earth-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+              >
                 <Send className="w-5 h-5" />
-              )}
-              <span className="hidden sm:inline">
                 {isRTL ? 'إرسال' : 'Send'}
-              </span>
-            </button>
-          </form>
-          
-          <div className="flex items-center justify-center mt-4 text-xs text-gray-500 gap-2">
-            <Sparkles className="w-3 h-3" />
-            <span className={isRTL ? 'font-arabic' : ''}>
-              {isRTL 
-                ? 'مدعوم بـ OpenAI GPT-3.5 • مساعدك الذكي لتدريس العربية'
-                : 'Powered by OpenAI GPT-3.5 • Your AI Arabic Teaching Assistant'
-              }
-            </span>
+              </button>
+            </form>
           </div>
         </div>
       </div>
@@ -309,10 +282,10 @@ export default function ChatPage() {
   )
 }
 
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
+export async function getStaticProps({ locale }: { locale: string }) {
   return {
     props: {
-      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+      ...(await serverSideTranslations(locale, ['common'])),
     },
   }
 } 

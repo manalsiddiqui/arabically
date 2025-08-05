@@ -224,7 +224,7 @@ Total:                  ~$1-5/month
 
 **Features Working:**
 - ✅ Teacher-trained AI responses
-- ✅ CEFR-aligned suggestions
+- ✅ Interactive learning suggestions
 - ✅ Bilingual interface (Arabic/English)
 - ✅ Lesson plan upload and analysis
 - ✅ Ready-to-use teaching materials

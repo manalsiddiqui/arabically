@@ -1,150 +1,177 @@
-# HedAia - AI Arabic Teaching Assistant
+# 🌟 HedAia - AI Teaching Assistant for Arabic
 
-🎓 **Teacher-trained AI specialized for Arabic language education**
-
-HedAia is a specialized AI assistant designed specifically for Arabic teachers, trained by expert educators and aligned with CEFR framework and guided play methodology.
+**HedAia** (هدايا) is a specialized AI assistant designed specifically for Arabic teachers, trained by expert educators and focused on interactive learning and modern teaching methodologies.
 
 ## ✨ Features
 
-- **Teacher-Trained AI**: Developed with feedback from Arabic teaching experts
-- **CEFR Aligned**: Supports Common European Framework proficiency levels
-- **Guided Play Integration**: Nature-based and play-oriented teaching methods
-- **Lesson-Specific Analysis**: Upload your lessons and get targeted advice
-- **Bilingual Support**: Full Arabic and English interface
-- **Ready-to-Use Materials**: Generates classroom-ready activities and assessments
+### 🎯 **Core Functionality**
+- **Interactive Learning**: Supports modern interactive teaching approaches
+- **Teacher-Trained AI**: Built with insights from expert Arabic educators
+- **Lesson Plan Analysis**: Upload and chat with your lesson plans
+- **Bilingual Interface**: Full Arabic/English support with RTL layout
+- **Ready-to-Use Materials**: Generate classroom-ready content instantly
 
-## 🚀 Free Deployment Guide
+### 🛠️ **Technical Features**
+- **Next.js 14** with TypeScript
+- **Supabase** backend (Database, Auth, Storage, Vector Search)
+- **OpenAI GPT-3.5** with RAG (Retrieval Augmented Generation)
+- **Tailwind CSS** with custom Arabic-inspired design
+- **File Processing** (PDF, DOCX, TXT)
+- **Real-time Chat** interface
 
-### Option 1: Vercel (Recommended)
+## 🚀 Quick Start
 
-1. **Push to GitHub**:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial HedAia setup"
-   git branch -M main
-   git remote add origin https://github.com/yourusername/hedaia.git
-   git push -u origin main
-   ```
+### Prerequisites
+- Node.js 18+ 
+- Supabase account
+- OpenAI API key
 
-2. **Deploy to Vercel**:
-   - Go to [vercel.com](https://vercel.com)
-   - Sign up with GitHub
-   - Click "New Project" → Import your repository
-   - Add environment variables:
-     - `NEXT_PUBLIC_SUPABASE_URL`
-     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-     - `SUPABASE_SERVICE_ROLE_KEY`
-     - `OPENAI_API_KEY`
-   - Deploy!
+### Installation
 
-3. **Alternative - CLI Deployment**:
-   ```bash
-   npx vercel
-   # Follow the prompts
-   # Add environment variables when prompted
-   ```
+1. **Clone the repository**
+```bash
+git clone <your-repo-url>
+cd hedaia
+```
 
-### Option 2: Netlify
+2. **Install dependencies**
+```bash
+npm install
+```
 
-1. **Build Command**: `npm run build`
-2. **Publish Directory**: `.next`
-3. **Environment Variables**: Same as Vercel
-
-### Option 3: Railway
-
-1. Connect GitHub repository
-2. Set environment variables
-3. Deploy automatically
-
-## 🛠 Environment Variables
-
-Create a `.env.local` file with:
-
+3. **Set up environment variables**
+Create `.env.local`:
 ```env
-# Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_key
-
-# OpenAI
 OPENAI_API_KEY=your_openai_api_key
-
-# NextAuth (optional)
-NEXTAUTH_SECRET=your_secret_key
+NEXTAUTH_SECRET=your_nextauth_secret
 NEXTAUTH_URL=http://localhost:3000
 ```
 
-## 📊 Supabase Setup
+4. **Set up Supabase database**
+Run the SQL scripts in `supabase/` folder in your Supabase SQL editor.
 
-1. **Create Project**: Go to [supabase.com](https://supabase.com)
-2. **Run SQL Schema**: Copy and run the contents of `supabase/schema.sql`
-3. **Setup Storage**: Create a private bucket called `lesson-plans`
-4. **Configure RLS**: Enable Row Level Security policies
+5. **Start development server**
+```bash
+npm run dev
+```
 
-## 🎯 Usage
+## 🎓 How to Use
 
-1. **Upload Lesson Plans**: PDF, DOCX, or TXT files
-2. **Chat with HedAia**: Get CEFR-aligned teaching advice
-3. **Generate Materials**: Ready-to-use activities and assessments
-4. **Guided Play Integration**: Nature-based learning suggestions
+### For Teachers:
+1. **Upload Lesson Plans**: Add your PDF, DOCX, or TXT lesson plans
+2. **Chat with HedAia**: Get interactive teaching advice
+3. **Generate Materials**: Create activities, assessments, and teaching aids
+4. **Bilingual Support**: Switch between Arabic and English interfaces
 
-## 🌍 Free Tier Limits
+### Key Workflows:
+- 📚 **Lesson Analysis**: Upload → AI processes → Chat about content
+- 🎯 **Material Generation**: Ask for activities → Get ready-to-use content
+- 💡 **Teaching Tips**: Get practical classroom strategies
+- 🔄 **Iterative Improvement**: Refine lessons based on AI suggestions
 
-### Vercel (Recommended)
-- ✅ **100GB bandwidth/month**
-- ✅ **Unlimited static sites**
-- ✅ **Serverless functions**
-- ✅ **Custom domains**
-- ✅ **Automatic HTTPS**
+## 🏗️ Architecture
 
-### Supabase
-- ✅ **500MB database**
-- ✅ **1GB file storage**
-- ✅ **50,000 monthly active users**
-- ✅ **2 million Edge Function invocations**
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Backend       │    │   AI Services   │
+│   (Next.js)     │◄──►│   (Supabase)    │◄──►│   (OpenAI)      │
+│                 │    │                 │    │                 │
+│ • React Pages   │    │ • PostgreSQL    │    │ • GPT-3.5       │
+│ • Tailwind CSS  │    │ • Auth          │    │ • Embeddings    │
+│ • i18n Support  │    │ • Storage       │    │ • RAG Pipeline  │
+│ • RTL Layout    │    │ • Vector DB     │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
 
-### OpenAI
-- ✅ **$5 free credits** (new accounts)
-- ✅ **Pay-as-you-use** afterwards
+## 🌍 Free Deployment Options
+
+### 🎯 **Recommended: Render** (Easiest)
+- ✅ Free tier available
+- ✅ Automatic deployments
+- ✅ Built-in SSL
+- ✅ Environment variable management
+
+**Quick Deploy:**
+1. Fork this repository
+2. Connect to Render
+3. Add environment variables
+4. Deploy automatically
+
+[📖 **Detailed Render Guide**](./RENDER_DEPLOY_GUIDE.md)
+
+### 🌐 **Alternative Options:**
+- **Vercel**: `npx vercel` (Frontend-focused)
+- **Netlify**: Great for static sites
+- **Railway**: Full-stack deployment
+
+## 🎨 Design System
+
+### Colors (Desert-Inspired)
+- **Primary**: Warm desert browns (#c8956d)
+- **Accent**: Fresh greens (#22c55e) 
+- **Secondary**: Sand tones (#c9b899)
+- **Earth**: Rich browns (#a68b73)
+
+### Typography
+- **Arabic**: Noto Sans Arabic
+- **English**: Inter
+- **RTL Support**: Full right-to-left layout
 
 ## 🔧 Development
 
-```bash
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
+### Project Structure
+```
+src/
+├── pages/              # Next.js pages
+├── components/         # React components
+├── lib/               # Utilities and services
+│   ├── ai/           # OpenAI integration
+│   └── supabase/     # Database client
+├── styles/           # Global styles
+└── hooks/            # Custom React hooks
 ```
 
-## 📚 Tech Stack
+### Key Commands
+```bash
+npm run dev          # Development server
+npm run build        # Production build
+npm run start        # Production server
+npm run lint         # Code linting
+```
 
-- **Frontend**: Next.js 15, React, Tailwind CSS
-- **Backend**: Next.js API Routes
-- **Database**: Supabase (PostgreSQL + Vector DB)
-- **AI**: OpenAI GPT-3.5-turbo
-- **Storage**: Supabase Storage
-- **Deployment**: Vercel
-- **Languages**: TypeScript, Arabic/English i18n
+## 🚀 Production Checklist
 
-## 🎓 Educational Framework
+- [ ] Environment variables configured
+- [ ] Supabase database set up
+- [ ] OpenAI API key added
+- [ ] File upload tested
+- [ ] Chat functionality working
+- [ ] Bilingual interface tested
+- [ ] Mobile responsiveness verified
 
-- **CEFR Levels**: A1-C2 proficiency alignment
-- **Guided Play**: Child-centered learning approach
-- **Nature-Based**: Outdoor and natural learning integration
-- **Early Years**: Age-appropriate development considerations
+## 🤝 Contributing
 
-## 📞 Support
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-For questions about HedAia or deployment issues, please open an issue in this repository.
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+- 📖 Check the [Deployment Guide](./RENDER_DEPLOY_GUIDE.md)
+- 🐛 Report issues on GitHub
+- 💬 Join our community discussions
 
 ---
 
-**Built with ❤️ for Arabic teachers worldwide**
+**HedAia** - Empowering Arabic teachers with AI-driven insights and ready-to-use materials. Built with ❤️ for educators.
+
+*"Teaching Arabic, enhanced by AI"* - هدايا
