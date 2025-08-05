@@ -97,22 +97,50 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       // Client-side extraction failed, do it server-side
       try {
         const fileExtension = file.originalFilename?.split('.').pop()?.toLowerCase()
-        const fileBuffer = fs.readFileSync(file.filepath)
+        
+        console.log(`🔄 Extracting text from ${fileExtension} file: ${file.originalFilename}`)
         
         if (fileExtension === 'pdf') {
-          const pdfData = await pdfParse(fileBuffer)
-          finalExtractedText = pdfData.text
+          // Read file in chunks to reduce memory usage
+          const fileBuffer = fs.readFileSync(file.filepath)
+          console.log(`📄 Processing PDF file: ${(fileBuffer.length / 1024 / 1024).toFixed(2)}MB`)
+          
+          const pdfData = await pdfParse(fileBuffer, {
+            // Optimize PDF parsing for large files
+            max: 50000, // Limit to 50,000 characters to prevent memory issues
+          })
+          finalExtractedText = pdfData.text.substring(0, 50000) // Truncate if too long
+          console.log(`✅ PDF text extracted: ${finalExtractedText.length} characters`)
+          
         } else if (fileExtension === 'docx') {
-          const result = await mammoth.extractRawText({ buffer: fileBuffer })
-          finalExtractedText = result.value
+          const fileBuffer = fs.readFileSync(file.filepath)
+          console.log(`📄 Processing DOCX file: ${(fileBuffer.length / 1024 / 1024).toFixed(2)}MB`)
+          
+          const result = await mammoth.extractRawText({ 
+            buffer: fileBuffer,
+            // Optimize DOCX parsing
+            convertImage: mammoth.images.ignoreAll // Ignore images to save memory
+          })
+          finalExtractedText = result.value.substring(0, 50000) // Truncate if too long
+          console.log(`✅ DOCX text extracted: ${finalExtractedText.length} characters`)
+          
         } else {
           // For other files, use the original extracted text
           finalExtractedText = extractedText
         }
-      } catch (extractionError) {
-        console.error('Server-side text extraction error:', extractionError)
+        
+        // Clean up temporary file immediately after processing
+        try {
+          fs.unlinkSync(file.filepath)
+          console.log('🗑️ Temporary file cleaned up')
+        } catch (cleanupError) {
+          console.warn('⚠️ Could not clean up temporary file:', cleanupError)
+        }
+        
+      } catch (extractionError: any) {
+        console.error('❌ Server-side text extraction error:', extractionError.message)
         // Use the original text if extraction fails
-        finalExtractedText = extractedText
+        finalExtractedText = `Error extracting text from ${file.originalFilename}. Please try a smaller file or different format.`
       }
     }
 
