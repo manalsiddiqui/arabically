@@ -2,6 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { generateEmbedding, generateChatResponse } from '@/lib/ai/openai'
 
+interface SimilarContentItem {
+  lesson_plan_id: string
+  content: string
+  similarity: number
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -37,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         match_threshold: 0.7,
         match_count: 5
       }
-    )
+    ) as { data: SimilarContentItem[] | null, error: any }
 
     if (searchError) {
       console.error('Vector search error:', searchError)
@@ -48,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // If we have relevant content, use it for context
     if (similarContent && similarContent.length > 0) {
       // Get lesson plan titles for the matched content
-      const lessonPlanIds = [...new Set(similarContent.map(item => item.lesson_plan_id))]
+      const lessonPlanIds = [...new Set(similarContent.map((item: SimilarContentItem) => item.lesson_plan_id))]
       const { data: lessonPlans } = await supabase
         .from('lesson_plans')
         .select('id, title, subject, age_group')
@@ -62,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Build context from similar content
       const context = similarContent
-        .map(item => {
+        .map((item: SimilarContentItem) => {
           const lessonInfo = lessonPlanMap[item.lesson_plan_id]
           return `From "${lessonInfo?.title || 'Unknown Lesson'}" (${lessonInfo?.subject || 'General'}, Ages ${lessonInfo?.age_group || 'All'}):\n${item.content}`
         })
