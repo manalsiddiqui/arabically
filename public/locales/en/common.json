@@ -37,7 +37,7 @@
     "title": "Upload Lesson Plan",
     "dragDrop": "Drag and drop your files here, or click to browse",
     "supportedFormats": "Supported formats: PDF, DOCX, TXT",
-    "maxSize": "Maximum file size: 10MB",
+    "maxSize": "Maximum file size: 50MB",
     "processing": "Processing your file...",
     "success": "File uploaded successfully!",
     "error": "Error uploading file. Please try again.",

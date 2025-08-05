@@ -51,7 +51,7 @@ function detectLanguage(text: string): string {
 }
 
 export function validateFile(file: File): { isValid: boolean; error?: string } {
-  const maxSize = 10 * 1024 * 1024 // 10MB
+  const maxSize = 50 * 1024 * 1024 // 50MB (increased from 10MB)
   const allowedTypes = [
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -60,7 +60,7 @@ export function validateFile(file: File): { isValid: boolean; error?: string } {
   const allowedExtensions = ['pdf', 'docx', 'txt']
   
   if (file.size > maxSize) {
-    return { isValid: false, error: 'File size must be less than 10MB' }
+    return { isValid: false, error: 'File size must be less than 50MB' }
   }
   
   const fileExtension = file.name.split('.').pop()?.toLowerCase()
