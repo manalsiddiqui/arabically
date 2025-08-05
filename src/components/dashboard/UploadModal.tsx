@@ -25,7 +25,6 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
   const [uploadProgress, setUploadProgress] = useState(0)
   const [formData, setFormData] = useState({
     title: '',
-    ageGroup: '',
     subject: '',
     tags: '',
     language: 'ar',
@@ -98,7 +97,7 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
       const uploadData = new FormData()
       uploadData.append('file', selectedFile)
       uploadData.append('title', formData.title.trim())
-      uploadData.append('ageGroup', formData.ageGroup)
+      uploadData.append('ageGroup', '0-6') // Default age group for early childhood
       uploadData.append('subject', formData.subject)
       uploadData.append('tags', formData.tags)
       uploadData.append('language', formData.language)
@@ -125,7 +124,6 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
       setSelectedFile(null)
       setFormData({
         title: '',
-        ageGroup: '',
         subject: '',
         tags: '',
         language: 'ar',
@@ -238,38 +236,20 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={`block text-sm font-medium text-gray-700 mb-1 ${isRTL ? 'font-arabic' : ''}`}>
-                    {t('upload.metadata.ageGroup')}
-                  </label>
-                  <input
-                    type="text"
-                    name="ageGroup"
-                    value={formData.ageGroup}
-                    onChange={handleInputChange}
-                    placeholder="5-7 years"
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 ${isRTL ? 'font-arabic text-right' : ''}`}
-                    dir={isRTL ? 'rtl' : 'ltr'}
-                    disabled={isUploading}
-                  />
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium text-gray-700 mb-1 ${isRTL ? 'font-arabic' : ''}`}>
-                    {t('upload.metadata.subject')}
-                  </label>
-                  <input
-                    type="text"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleInputChange}
-                    placeholder={isRTL ? 'القراءة والكتابة' : 'Reading & Writing'}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 ${isRTL ? 'font-arabic text-right' : ''}`}
-                    dir={isRTL ? 'rtl' : 'ltr'}
-                    disabled={isUploading}
-                  />
-                </div>
+              <div>
+                <label className={`block text-sm font-medium text-gray-700 mb-1 ${isRTL ? 'font-arabic' : ''}`}>
+                  {t('upload.metadata.subject')}
+                </label>
+                <input
+                  type="text"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleInputChange}
+                  placeholder={isRTL ? 'القراءة والكتابة' : 'Reading & Writing'}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 ${isRTL ? 'font-arabic text-right' : ''}`}
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                  disabled={isUploading}
+                />
               </div>
 
               <div>

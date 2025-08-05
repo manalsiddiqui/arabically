@@ -261,7 +261,6 @@ function UploadModal({
   const [isUploading, setIsUploading] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
-    ageGroup: '',
     subject: '',
     tags: ''
   })
@@ -305,7 +304,7 @@ function UploadModal({
         filename: selectedFile.name,
         file_size: selectedFile.size,
         upload_date: new Date().toISOString(),
-        age_group: formData.ageGroup,
+        age_group: '0-6', // Default age group for early childhood
         subject: formData.subject,
         language: isRTL ? 'ar' : 'en'
       }
@@ -390,37 +389,18 @@ function UploadModal({
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'font-arabic text-right' : ''}`}>
-                  {isRTL ? 'الفئة العمرية' : 'Age Group'}
-                </label>
-                <select
-                  value={formData.ageGroup}
-                  onChange={(e) => setFormData(prev => ({ ...prev, ageGroup: e.target.value }))}
-                  className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isRTL ? 'font-arabic text-right' : ''}`}
-                >
-                  <option value="">{isRTL ? 'اختر الفئة العمرية' : 'Select age group'}</option>
-                  <option value="3-5">{isRTL ? '3-5 سنوات' : '3-5 years'}</option>
-                  <option value="6-8">{isRTL ? '6-8 سنوات' : '6-8 years'}</option>
-                  <option value="9-12">{isRTL ? '9-12 سنة' : '9-12 years'}</option>
-                  <option value="13+">{isRTL ? '13+ سنة' : '13+ years'}</option>
-                </select>
-              </div>
-
-              <div>
-                <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'font-arabic text-right' : ''}`}>
-                  {isRTL ? 'الموضوع' : 'Subject'}
-                </label>
-                <input
-                  type="text"
-                  value={formData.subject}
-                  onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                  className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isRTL ? 'font-arabic text-right' : ''}`}
-                  dir={isRTL ? 'rtl' : 'ltr'}
-                  placeholder={isRTL ? 'مثل: قراءة، نحو، كتابة' : 'e.g., Reading, Grammar, Writing'}
-                />
-              </div>
+            <div>
+              <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'font-arabic text-right' : ''}`}>
+                {isRTL ? 'الموضوع' : 'Subject'}
+              </label>
+              <input
+                type="text"
+                value={formData.subject}
+                onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isRTL ? 'font-arabic text-right' : ''}`}
+                dir={isRTL ? 'rtl' : 'ltr'}
+                placeholder={isRTL ? 'مثل: قراءة، نحو، كتابة' : 'e.g., Reading, Grammar, Writing'}
+              />
             </div>
           </div>
         </div>
