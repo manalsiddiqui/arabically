@@ -1,67 +1,69 @@
-import { createClient } from '@/lib/supabase/client'
-import { createEmbedding } from './openai'
+import { createServerClient } from '@/lib/supabase/server'
+import { generateEmbedding, generateChatResponse } from './openai'
 
-export interface ChunkResult {
-  content: string
-  similarity: number
+export interface LessonPlanChunk {
+  id: string
   lesson_plan_id: string
+  content: string
+  embedding: number[]
+  metadata: Record<string, any>
 }
 
-export async function chunkText(text: string, chunkSize: number = 1000, overlap: number = 200): Promise<string[]> {
+export function chunkText(text: string, chunkSize: number = 1000, overlap: number = 200): string[] {
   const chunks: string[] = []
   let start = 0
   
   while (start < text.length) {
     const end = Math.min(start + chunkSize, text.length)
-    const chunk = text.slice(start, end)
-    chunks.push(chunk.trim())
-    
-    if (end === text.length) break
+    chunks.push(text.slice(start, end))
     start = end - overlap
+    
+    if (start >= text.length) break
   }
   
-  return chunks.filter(chunk => chunk.length > 50) // Filter out very small chunks
+  return chunks
 }
 
-export async function storeEmbeddings(lessonPlanId: string, text: string) {
-  const supabase = createClient()
-  const chunks = await chunkText(text)
+export async function storeEmbeddings(
+  lessonPlanId: string,
+  text: string,
+  metadata: Record<string, any> = {}
+): Promise<void> {
+  const supabase = createServerClient()
+  const chunks = chunkText(text)
   
-  const embeddingPromises = chunks.map(async (chunk, index) => {
-    const embedding = await createEmbedding(chunk)
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i]
+    const embedding = await generateEmbedding(chunk)
     
-    return {
-      lesson_plan_id: lessonPlanId,
-      content: chunk,
-      embedding,
-      chunk_index: index,
+    const { error } = await supabase
+      .from('lesson_plan_embeddings')
+      .insert({
+        lesson_plan_id: lessonPlanId,
+        content: chunk,
+        embedding: JSON.stringify(embedding),
+        metadata: { ...metadata, chunk_index: i }
+      })
+    
+    if (error) {
+      console.error('Error storing embedding:', error)
+      throw new Error('Failed to store embedding')
     }
-  })
-  
-  const embeddingData = await Promise.all(embeddingPromises)
-  
-  const { error } = await supabase
-    .from('lesson_plan_embeddings')
-    .insert(embeddingData)
-  
-  if (error) {
-    console.error('Error storing embeddings:', error)
-    throw error
   }
 }
 
 export async function searchSimilarContent(
-  query: string, 
-  lessonPlanId?: string, 
+  query: string,
+  lessonPlanId?: string,
   limit: number = 5
-): Promise<ChunkResult[]> {
-  const supabase = createClient()
-  const queryEmbedding = await createEmbedding(query)
+): Promise<LessonPlanChunk[]> {
+  const supabase = createServerClient()
+  const queryEmbedding = await generateEmbedding(query)
   
   let rpcQuery = supabase.rpc('match_lesson_plan_embeddings', {
-    query_embedding: queryEmbedding,
+    query_embedding: JSON.stringify(queryEmbedding),
     match_threshold: 0.7,
-    match_count: limit,
+    match_count: limit
   })
   
   if (lessonPlanId) {
@@ -71,54 +73,49 @@ export async function searchSimilarContent(
   const { data, error } = await rpcQuery
   
   if (error) {
-    console.error('Error searching embeddings:', error)
-    throw error
+    console.error('Error searching similar content:', error)
+    throw new Error('Failed to search similar content')
   }
   
   return data || []
 }
 
 export async function generateContextualResponse(
-  query: string, 
-  lessonPlanId?: string,
-  chatHistory: Array<{ role: 'user' | 'assistant', content: string }> = []
-) {
-  // Get relevant content from the lesson plan
-  const similarContent = await searchSimilarContent(query, lessonPlanId, 3)
+  query: string,
+  lessonPlanId: string,
+  lessonTitle: string,
+  isRTL: boolean = false
+): Promise<string> {
+  // Get relevant chunks
+  const similarChunks = await searchSimilarContent(query, lessonPlanId, 3)
   
-  // Build context from similar content
-  const context = similarContent
+  // Build context from chunks
+  const context = similarChunks
     .map(chunk => chunk.content)
     .join('\n\n')
   
-  // Create system message with context and Arabic teaching expertise
+  // Create system message
   const systemMessage = {
     role: 'system' as const,
-    content: `You are an expert Arabic language teaching assistant. You help teachers improve their lesson plans and teaching strategies.
+    content: isRTL
+      ? `أنت هدايا، مساعد ذكي متخصص في تدريس اللغة العربية. استخدم المحتوى التالي من درس "${lessonTitle}" للإجابة على السؤال:
 
-${context ? `Here is the relevant content from the lesson plan:
+المحتوى:
 ${context}
 
-` : ''}You should:
-1. Provide practical, actionable advice for Arabic language teaching
-2. Suggest age-appropriate activities and exercises
-3. Recommend assessment methods
-4. Help adapt content for different skill levels
-5. Support both Arabic and English in your responses
-6. Focus on proven pedagogical methods for Arabic as a second language
+قدم إجابة مفيدة وعملية مبنية على هذا المحتوى فقط.`
+      : `You are HedAia, a specialized AI assistant for Arabic language teaching. Use the following content from the lesson "${lessonTitle}" to answer the question:
 
-When discussing the lesson plan content, only reference what has been provided. For general Arabic teaching advice, you can draw from your knowledge base.
+Content:
+${context}
 
-Be encouraging and practical in your responses.`
+Provide a helpful and practical answer based only on this content.`
   }
   
-  // Combine system message, chat history, and current query
-  const messages = [
-    systemMessage,
-    ...chatHistory,
-    { role: 'user' as const, content: query }
-  ]
+  const userMessage = {
+    role: 'user' as const,
+    content: query
+  }
   
-  const { generateChatResponse } = await import('./openai')
-  return await generateChatResponse(messages)
+  return await generateChatResponse([systemMessage, userMessage])
 } 

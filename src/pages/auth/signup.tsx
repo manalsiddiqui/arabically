@@ -8,12 +8,6 @@ import { createClient } from '@supabase/supabase-js'
 import { Mail, Lock, User, UserPlus } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-// Simple Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 export default function SignUp() {
   const { t } = useTranslation('common')
   const router = useRouter()
@@ -56,9 +50,16 @@ export default function SignUp() {
     }
 
     setLoading(true)
-    
+    setErrors([])
+
     try {
-      const { error } = await supabase.auth.signUp({
+      // Create Supabase client inside the function
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+
+      const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -68,23 +69,34 @@ export default function SignUp() {
         },
       })
 
-      if (error) throw error
-      
-      toast.success('Account created! Please check your email to verify your account.')
+      if (error) {
+        throw error
+      }
+
+      toast.success(
+        isRTL 
+          ? 'تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني'
+          : 'Account created successfully! Check your email'
+      )
+
+      // Redirect to dashboard or sign in
       router.push('/auth/signin')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign up error:', error)
-      toast.error(error instanceof Error ? error.message : 'Sign up failed')
+      setErrors([error.message || 'Failed to create account'])
+      toast.error(error.message || 'Failed to create account')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value
     }))
+    
     // Clear errors when user starts typing
     if (errors.length > 0) {
       setErrors([])
@@ -92,114 +104,121 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
+          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-6">
+            <UserPlus className="h-8 w-8 text-white" />
+          </div>
           <h2 className={`text-3xl font-bold text-gray-900 ${isRTL ? 'font-arabic' : ''}`}>
-            {t('auth.createAccount')}
+            {isRTL ? 'إنشاء حساب جديد' : 'Create Account'}
           </h2>
-          <p className={`mt-2 text-gray-600 ${isRTL ? 'font-arabic' : ''}`}>
-            {t('auth.signUp')}
+          <p className={`mt-2 text-sm text-gray-600 ${isRTL ? 'font-arabic' : ''}`}>
+            {isRTL ? 'انضم إلى هدايا وابدأ رحلتك في تدريس العربية' : 'Join HedAia and start your Arabic teaching journey'}
           </p>
         </div>
 
-        {errors.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <ul className="list-disc list-inside text-sm text-red-600 space-y-1">
-              {errors.map((error, index) => (
-                <li key={index}>{error}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {errors.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex">
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    {isRTL ? 'يرجى تصحيح الأخطاء التالية:' : 'Please fix the following errors:'}
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <ul className="list-disc list-inside space-y-1">
+                      {errors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             <div>
-              <label htmlFor="fullName" className={`block text-sm font-medium text-gray-700 mb-1 ${isRTL ? 'font-arabic' : ''}`}>
-                {t('auth.fullName')}
+              <label htmlFor="fullName" className={`block text-sm font-medium text-gray-700 ${isRTL ? 'font-arabic text-right' : ''}`}>
+                {isRTL ? 'الاسم الكامل' : 'Full Name'}
               </label>
-              <div className="relative">
-                <div className={`absolute inset-y-0 ${isRTL ? 'right-0 pr-3' : 'left-0 pl-3'} flex items-center pointer-events-none`}>
-                  <User className="h-5 w-5 text-gray-400" />
-                </div>
+              <div className="mt-1 relative">
                 <input
                   id="fullName"
                   name="fullName"
                   type="text"
                   required
                   value={formData.fullName}
-                  onChange={handleChange}
-                  className={`appearance-none relative block w-full ${isRTL ? 'pr-10 pl-3' : 'pl-10 pr-3'} py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 ${isRTL ? 'font-arabic text-right' : ''}`}
-                  placeholder={t('auth.fullName')}
+                  onChange={handleInputChange}
+                  className={`appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${isRTL ? 'font-arabic text-right pr-10 pl-3' : ''}`}
+                  placeholder={isRTL ? 'أدخل اسمك الكامل' : 'Enter your full name'}
                   dir={isRTL ? 'rtl' : 'ltr'}
                 />
+                <User className={`absolute top-3 w-5 h-5 text-gray-400 ${isRTL ? 'right-3' : 'left-3'}`} />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className={`block text-sm font-medium text-gray-700 mb-1 ${isRTL ? 'font-arabic' : ''}`}>
-                {t('auth.email')}
+              <label htmlFor="email" className={`block text-sm font-medium text-gray-700 ${isRTL ? 'font-arabic text-right' : ''}`}>
+                {isRTL ? 'البريد الإلكتروني' : 'Email Address'}
               </label>
-              <div className="relative">
-                <div className={`absolute inset-y-0 ${isRTL ? 'right-0 pr-3' : 'left-0 pl-3'} flex items-center pointer-events-none`}>
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
+              <div className="mt-1 relative">
                 <input
                   id="email"
                   name="email"
                   type="email"
+                  autoComplete="email"
                   required
                   value={formData.email}
-                  onChange={handleChange}
-                  className={`appearance-none relative block w-full ${isRTL ? 'pr-10 pl-3' : 'pl-10 pr-3'} py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 ${isRTL ? 'font-arabic text-right' : ''}`}
-                  placeholder={t('auth.email')}
+                  onChange={handleInputChange}
+                  className={`appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${isRTL ? 'font-arabic text-right pr-10 pl-3' : ''}`}
+                  placeholder={isRTL ? 'أدخل بريدك الإلكتروني' : 'Enter your email'}
                   dir={isRTL ? 'rtl' : 'ltr'}
                 />
+                <Mail className={`absolute top-3 w-5 h-5 text-gray-400 ${isRTL ? 'right-3' : 'left-3'}`} />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className={`block text-sm font-medium text-gray-700 mb-1 ${isRTL ? 'font-arabic' : ''}`}>
-                {t('auth.password')}
+              <label htmlFor="password" className={`block text-sm font-medium text-gray-700 ${isRTL ? 'font-arabic text-right' : ''}`}>
+                {isRTL ? 'كلمة المرور' : 'Password'}
               </label>
-              <div className="relative">
-                <div className={`absolute inset-y-0 ${isRTL ? 'right-0 pr-3' : 'left-0 pl-3'} flex items-center pointer-events-none`}>
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
+              <div className="mt-1 relative">
                 <input
                   id="password"
                   name="password"
                   type="password"
+                  autoComplete="new-password"
                   required
                   value={formData.password}
-                  onChange={handleChange}
-                  className={`appearance-none relative block w-full ${isRTL ? 'pr-10 pl-3' : 'pl-10 pr-3'} py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 ${isRTL ? 'font-arabic text-right' : ''}`}
-                  placeholder={t('auth.password')}
+                  onChange={handleInputChange}
+                  className={`appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${isRTL ? 'font-arabic text-right pr-10 pl-3' : ''}`}
+                  placeholder={isRTL ? 'أدخل كلمة المرور' : 'Enter your password'}
                   dir={isRTL ? 'rtl' : 'ltr'}
                 />
+                <Lock className={`absolute top-3 w-5 h-5 text-gray-400 ${isRTL ? 'right-3' : 'left-3'}`} />
               </div>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className={`block text-sm font-medium text-gray-700 mb-1 ${isRTL ? 'font-arabic' : ''}`}>
+              <label htmlFor="confirmPassword" className={`block text-sm font-medium text-gray-700 ${isRTL ? 'font-arabic text-right' : ''}`}>
                 {isRTL ? 'تأكيد كلمة المرور' : 'Confirm Password'}
               </label>
-              <div className="relative">
-                <div className={`absolute inset-y-0 ${isRTL ? 'right-0 pr-3' : 'left-0 pl-3'} flex items-center pointer-events-none`}>
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
+              <div className="mt-1 relative">
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
+                  autoComplete="new-password"
                   required
                   value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className={`appearance-none relative block w-full ${isRTL ? 'pr-10 pl-3' : 'pl-10 pr-3'} py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 ${isRTL ? 'font-arabic text-right' : ''}`}
-                  placeholder={isRTL ? 'تأكيد كلمة المرور' : 'Confirm Password'}
+                  onChange={handleInputChange}
+                  className={`appearance-none relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${isRTL ? 'font-arabic text-right pr-10 pl-3' : ''}`}
+                  placeholder={isRTL ? 'أعد إدخال كلمة المرور' : 'Re-enter your password'}
                   dir={isRTL ? 'rtl' : 'ltr'}
                 />
+                <Lock className={`absolute top-3 w-5 h-5 text-gray-400 ${isRTL ? 'right-3' : 'left-3'}`} />
               </div>
             </div>
           </div>
@@ -208,20 +227,30 @@ export default function SignUp() {
             <button
               type="submit"
               disabled={loading}
-              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${isRTL ? 'font-arabic' : ''}`}
+              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ${isRTL ? 'font-arabic' : ''}`}
             >
-              <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                <UserPlus className="h-5 w-5 text-blue-500 group-hover:text-blue-400" />
-              </span>
-              {loading ? 'Creating account...' : t('auth.signUp')}
+              {loading ? (
+                <div className="flex items-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  {isRTL ? 'جاري الإنشاء...' : 'Creating Account...'}
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  {isRTL ? 'إنشاء الحساب' : 'Create Account'}
+                </div>
+              )}
             </button>
           </div>
 
           <div className="text-center">
             <p className={`text-sm text-gray-600 ${isRTL ? 'font-arabic' : ''}`}>
-              {t('auth.alreadyHaveAccount')}{' '}
-              <Link href="/auth/signin" className="font-medium text-blue-600 hover:text-blue-500">
-                {t('auth.signIn')}
+              {isRTL ? 'لديك حساب بالفعل؟' : 'Already have an account?'}{' '}
+              <Link 
+                href="/auth/signin" 
+                className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+              >
+                {isRTL ? 'تسجيل الدخول' : 'Sign in'}
               </Link>
             </p>
           </div>
