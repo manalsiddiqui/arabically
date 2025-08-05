@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { storeEmbeddings } from '@/lib/ai/rag'
 import { createClient } from '@supabase/supabase-js'
 import fs from 'fs'
+import mammoth from 'mammoth'
+import pdfParse from 'pdf-parse'
 
 export const config = {
   api: {
@@ -77,6 +79,32 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Parse tags
     const tagsArray = tags ? tags.split(',').map((tag: string) => tag.trim()).filter(Boolean) : []
 
+    // Extract text from file on server-side if needed
+    let finalExtractedText = extractedText
+    
+    if (extractedText.includes('[File:') && extractedText.includes('Text will be extracted on server')) {
+      // Client-side extraction failed, do it server-side
+      try {
+        const fileExtension = file.originalFilename?.split('.').pop()?.toLowerCase()
+        const fileBuffer = fs.readFileSync(file.filepath)
+        
+        if (fileExtension === 'pdf') {
+          const pdfData = await pdfParse(fileBuffer)
+          finalExtractedText = pdfData.text
+        } else if (fileExtension === 'docx') {
+          const result = await mammoth.extractRawText({ buffer: fileBuffer })
+          finalExtractedText = result.value
+        } else {
+          // For other files, use the original extracted text
+          finalExtractedText = extractedText
+        }
+      } catch (extractionError) {
+        console.error('Server-side text extraction error:', extractionError)
+        // Use the original text if extraction fails
+        finalExtractedText = extractedText
+      }
+    }
+
     // Save lesson plan to database
     const { data: lessonPlan, error: dbError } = await supabase
       .from('lesson_plans')
@@ -87,7 +115,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         file_path: filePath,
         file_type: file.mimetype || 'application/octet-stream',
         file_size: file.size,
-        extracted_text: extractedText,
+        extracted_text: finalExtractedText,
         tags: tagsArray,
         age_group: ageGroup || null,
         subject: subject || null,
@@ -105,7 +133,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // Store embeddings for RAG
     try {
-      await storeEmbeddings(lessonPlan.id, extractedText)
+      await storeEmbeddings(lessonPlan.id, finalExtractedText)
     } catch (embeddingError) {
       console.error('Embedding error:', embeddingError)
       // Don't fail the entire upload if embeddings fail
