@@ -1,6 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import formidable, { IncomingForm } from 'formidable'
 import { v4 as uuidv4 } from 'uuid'
 import { storeEmbeddings } from '@/lib/ai/rag'
@@ -61,7 +59,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Generate unique filename
     const fileExtension = file.originalFilename?.split('.').pop() || 'txt'
     const uniqueFilename = `${uuidv4()}.${fileExtension}`
-    const filePath = `lesson-plans/${dummyUserId}/${uniqueFilename}`
+    const filePath = `lesson-plans/${uniqueFilename}` // Simplified path without user folder
 
     // Upload file to Supabase Storage
     const { error: uploadError } = await supabase.storage
@@ -83,7 +81,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { data: lessonPlan, error: dbError } = await supabase
       .from('lesson_plans')
       .insert({
-        user_id: dummyUserId,
+        user_id: null, // Set to null since we made it nullable for testing
         title,
         original_filename: file.originalFilename || 'unknown',
         file_path: filePath,

@@ -10,12 +10,12 @@ export const openai = new OpenAI({
 
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    const response = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: text,
-    })
-    
-    return response.data[0].embedding
+  const response = await openai.embeddings.create({
+    model: 'text-embedding-3-small',
+    input: text,
+  })
+  
+  return response.data[0].embedding
   } catch (error) {
     console.error('Error generating embedding:', error)
     throw new Error('Failed to generate embedding')
@@ -27,13 +27,13 @@ export async function generateChatResponse(
   maxTokens: number = 1000
 ): Promise<string> {
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages,
+  const response = await openai.chat.completions.create({
+    model: 'gpt-3.5-turbo',
+    messages,
       max_tokens: maxTokens,
-      temperature: 0.7,
-    })
-
+    temperature: 0.7,
+  })
+  
     return response.choices[0].message.content || 'No response generated'
   } catch (error) {
     console.error('Error generating chat response:', error)

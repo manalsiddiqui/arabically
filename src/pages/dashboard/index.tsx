@@ -39,14 +39,29 @@ export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showUploadModal, setShowUploadModal] = useState(false)
 
-  // Mock data for now - will be replaced with actual Supabase data
+  // Fetch lesson plans from API
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setLessonPlans([])
-      setIsLoading(false)
-    }, 1000)
+    fetchLessonPlans()
   }, [])
+
+  const fetchLessonPlans = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/lesson-plans')
+      if (response.ok) {
+        const data = await response.json()
+        setLessonPlans(data.lessonPlans || [])
+      } else {
+        console.error('Failed to fetch lesson plans')
+        setLessonPlans([])
+      }
+    } catch (error) {
+      console.error('Error fetching lesson plans:', error)
+      setLessonPlans([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const filteredLessonPlans = lessonPlans.filter(plan =>
     plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -210,12 +225,12 @@ export default function DashboardPage() {
 
                 <div className="flex gap-2">
                   <Link
-                    href={`/chat/${plan.id}`}
+                    href="/chat"
                     className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     <MessageCircle className="w-4 h-4" />
                     <span className={isRTL ? 'font-arabic' : ''}>
-                      {isRTL ? 'دردشة' : 'Chat'}
+                      {isRTL ? 'دردش مع هدايا' : 'Chat with HedAia'}
                     </span>
                   </Link>
                   <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors flex items-center justify-center">
@@ -233,7 +248,18 @@ export default function DashboardPage() {
         <UploadModal 
           isOpen={showUploadModal}
           onClose={() => setShowUploadModal(false)}
-          onUpload={(newPlan) => {
+          onUpload={(uploadResponse) => {
+            // Transform the API response to match our LessonPlan type
+            const newPlan: LessonPlan = {
+              id: uploadResponse.lessonPlan.id,
+              title: uploadResponse.lessonPlan.title,
+              filename: uploadResponse.lessonPlan.original_filename,
+              file_size: uploadResponse.lessonPlan.file_size,
+              upload_date: uploadResponse.lessonPlan.created_at,
+              age_group: uploadResponse.lessonPlan.age_group,
+              subject: uploadResponse.lessonPlan.subject,
+              language: uploadResponse.lessonPlan.language
+            }
             setLessonPlans(prev => [newPlan, ...prev])
             setShowUploadModal(false)
           }}
@@ -253,7 +279,7 @@ function UploadModal({
 }: { 
   isOpen: boolean
   onClose: () => void
-  onUpload: (plan: LessonPlan) => void
+  onUpload: (uploadResponse: { lessonPlan: LessonPlan }) => void
   isRTL: boolean
 }) {
   const [dragActive, setDragActive] = useState(false)
@@ -309,7 +335,7 @@ function UploadModal({
         language: isRTL ? 'ar' : 'en'
       }
       
-      onUpload(newPlan)
+      onUpload({ lessonPlan: newPlan })
       setIsUploading(false)
     }, 2000)
   }
@@ -383,62 +409,4 @@ function UploadModal({
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isRTL ? 'font-arabic text-right' : ''}`}
-                dir={isRTL ? 'rtl' : 'ltr'}
-                placeholder={isRTL ? 'مثل: درس الحروف الأبجدية' : 'e.g., Arabic Alphabet Lesson'}
-              />
-            </div>
-
-            <div>
-              <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'font-arabic text-right' : ''}`}>
-                {isRTL ? 'الموضوع' : 'Subject'}
-              </label>
-              <input
-                type="text"
-                value={formData.subject}
-                onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isRTL ? 'font-arabic text-right' : ''}`}
-                dir={isRTL ? 'rtl' : 'ltr'}
-                placeholder={isRTL ? 'مثل: قراءة، نحو، كتابة' : 'e.g., Reading, Grammar, Writing'}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6 border-t border-gray-200 flex gap-4 justify-end">
-          <button
-            onClick={onClose}
-            className={`px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors ${isRTL ? 'font-arabic' : ''}`}
-          >
-            {isRTL ? 'إلغاء' : 'Cancel'}
-          </button>
-          <button
-            onClick={handleUpload}
-            disabled={!selectedFile || !formData.title || isUploading}
-            className={`px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 ${isRTL ? 'font-arabic' : ''}`}
-          >
-            {isUploading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                {isRTL ? 'جاري الرفع...' : 'Uploading...'}
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4" />
-                {isRTL ? 'ارفع الدرس' : 'Upload Lesson'}
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
-  return {
-    props: {
-      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
-    },
-  }
-} 
+                className={`

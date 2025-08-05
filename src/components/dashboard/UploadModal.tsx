@@ -10,13 +10,13 @@ import toast from 'react-hot-toast'
 interface UploadModalProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: () => void
+  onUpload: (lessonPlan: any) => void
+  isRTL: boolean
 }
 
-export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
+export default function UploadModal({ isOpen, onClose, onUpload, isRTL }: UploadModalProps) {
   const { t } = useTranslation('common')
   const router = useRouter()
-  const isRTL = router.locale === 'ar'
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [dragActive, setDragActive] = useState(false)
@@ -117,6 +117,7 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
         throw new Error('Upload failed')
       }
 
+      const lessonPlan = await response.json()
       setUploadProgress(100)
       toast.success(t('upload.success'))
       
@@ -129,7 +130,7 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
         language: 'ar',
       })
       
-      onSuccess()
+      onUpload(lessonPlan)
     } catch (error) {
       console.error('Upload error:', error)
       toast.error(t('upload.error'))
