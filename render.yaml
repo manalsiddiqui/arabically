@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: hedaia
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        fromGroup: hedaia-secrets
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        fromGroup: hedaia-secrets
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        fromGroup: hedaia-secrets
+      - key: OPENAI_API_KEY
+        fromGroup: hedaia-secrets
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+      - key: NEXTAUTH_URL
+        value: https://hedaia.onrender.com
+    healthCheckPath: /
+    autoDeploy: true
+    branch: main 

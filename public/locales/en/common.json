@@ -1,0 +1,97 @@
+{
+  "appName": "Arabically",
+  "tagline": "AI-Powered Arabic Lesson Plan Assistant",
+  "description": "Upload, explore, and enhance your Arabic lesson plans with AI-powered insights and recommendations.",
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full Name",
+    "welcome": "Welcome to Arabically",
+    "createAccount": "Create your account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "lessonPlans": "Lesson Plans",
+    "chat": "AI Chat",
+    "profile": "Profile",
+    "language": "Language"
+  },
+  "dashboard": {
+    "title": "Your Lesson Plans",
+    "uploadNew": "Upload New Lesson Plan",
+    "noPlans": "No lesson plans yet. Upload your first one!",
+    "searchPlaceholder": "Search lesson plans...",
+    "filters": {
+      "all": "All",
+      "ageGroup": "Age Group",
+      "subject": "Subject",
+      "tags": "Tags"
+    }
+  },
+  "upload": {
+    "title": "Upload Lesson Plan",
+    "dragDrop": "Drag and drop your files here, or click to browse",
+    "supportedFormats": "Supported formats: PDF, DOCX, TXT",
+    "maxSize": "Maximum file size: 10MB",
+    "processing": "Processing your file...",
+    "success": "File uploaded successfully!",
+    "error": "Error uploading file. Please try again.",
+    "metadata": {
+      "title": "Lesson Title",
+      "ageGroup": "Age Group",
+      "subject": "Subject",
+      "tags": "Tags (comma separated)",
+      "language": "Language"
+    }
+  },
+  "chat": {
+    "title": "AI Teaching Assistant",
+    "placeholder": "Ask about your lesson plan or Arabic teaching strategies...",
+    "send": "Send",
+    "examples": {
+      "title": "Try asking:",
+      "questions": [
+        "How can I adapt this lesson for younger students?",
+        "What activities would work well with this content?",
+        "Can you suggest assessment methods for this lesson?",
+        "How can I make this lesson more interactive?"
+      ]
+    },
+    "thinking": "AI is thinking...",
+    "error": "Sorry, there was an error. Please try again."
+  },
+  "lessonPlan": {
+    "details": "Lesson Details",
+    "originalFile": "Original File",
+    "download": "Download",
+    "chatWithAI": "Chat with AI",
+    "delete": "Delete",
+    "edit": "Edit",
+    "tags": "Tags",
+    "ageGroup": "Age Group",
+    "subject": "Subject",
+    "uploadedOn": "Uploaded on",
+    "fileSize": "File Size"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "upload": "Upload",
+    "download": "Download",
+    "yes": "Yes",
+    "no": "No",
+    "error": "Error",
+    "success": "Success"
+  }
+} 
