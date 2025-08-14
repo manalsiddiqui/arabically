@@ -116,11 +116,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           const fileBuffer = fs.readFileSync(file.filepath)
           console.log(`📄 Processing DOCX file: ${(fileBuffer.length / 1024 / 1024).toFixed(2)}MB`)
           
-          const result = await mammoth.extractRawText({ 
-            buffer: fileBuffer,
-            // Optimize DOCX parsing
-            convertImage: mammoth.images.ignoreAll // Ignore images to save memory
-          })
+          const result = await mammoth.extractRawText({ buffer: fileBuffer })
           finalExtractedText = result.value.substring(0, 50000) // Truncate if too long
           console.log(`✅ DOCX text extracted: ${finalExtractedText.length} characters`)
           
