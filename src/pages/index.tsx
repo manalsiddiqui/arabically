@@ -2,7 +2,7 @@ import { GetStaticProps } from 'next'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { BookOpen, MessageCircle, Upload, Sparkles, Target, Users } from 'lucide-react'
+import { BookOpen, MessageCircle, Sparkles } from 'lucide-react'
 
 export default function HomePage() {
   const router = useRouter()
@@ -39,24 +39,24 @@ export default function HomePage() {
       <section className="relative pt-16 pb-32">
         <div className="relative z-10 max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <div className="space-y-8">
-            <h1 className={`text-5xl md:text-7xl font-bold text-neutral-900 leading-tight ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+            <h1 className={`text-5xl md:text-6xl font-bold text-neutral-900 leading-tight ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
               {isRTL ? (
                 <>
                   <span className="block">هدايا</span>
-                  <span className="block bg-gradient-desert bg-clip-text text-transparent">من اللغة إلى الإرث</span>
+                  <span className="block bg-gradient-desert bg-clip-text text-transparent text-3xl md:text-4xl">من اللغة إلى الإرث</span>
                 </>
               ) : (
                 <>
                   <span className="block">HedAia</span>
-                  <span className="block bg-gradient-desert bg-clip-text text-transparent">From Language to Legacy</span>
+                  <span className="block bg-gradient-desert bg-clip-text text-transparent text-3xl md:text-4xl">From Language to Legacy</span>
                 </>
               )}
             </h1>
             
             <p className={`text-xl md:text-2xl text-neutral-700 max-w-3xl mx-auto leading-relaxed ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
               {isRTL 
-                ? 'مساعد ذكي مبتكر يدمج بين تعليم اللغة العربية والذكاء الاصطناعي والتعلم القائم على الطبيعة، مصمم لتزويد المعلمين بأدوات تشجع الفضول وحل المشكلات والإشراف البيئي'
-                : 'An innovative AI assistant that bridges Arabic language education, artificial intelligence, and nature-based learning, designed to equip educators with tools that encourage curiosity, problem-solving, and environmental stewardship'
+                ? 'مرافقك التعليمي الذكي لتعليم عربي قائم على الطبيعة للطفولة المبكرة'
+                : 'Your AI co-educator for nature-based early childhood Arabic education'
               }
             </p>
 
@@ -144,7 +144,7 @@ export default function HomePage() {
             {/* Nature Expeditions Toolkit */}
             <div className="bg-gradient-to-br from-earth-50 to-secondary-50 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
               <div className="w-16 h-16 bg-gradient-to-r from-earth-500 to-secondary-500 rounded-full flex items-center justify-center mb-6">
-                <Target className="w-8 h-8 text-white" />
+                <MessageCircle className="w-8 h-8 text-white" />
               </div>
               <h3 className={`text-2xl font-bold text-neutral-900 mb-4 ${isRTL ? 'font-arabic' : ''}`}>
                 {isRTL ? 'مجموعة أدوات الرحلات الطبيعية' : 'Nature Expeditions Toolkit'}
@@ -160,7 +160,7 @@ export default function HomePage() {
             {/* Teacher Training Impact Studios */}
             <div className="bg-gradient-to-br from-primary-50 to-accent-50 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
               <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center mb-6">
-                <Users className="w-8 h-8 text-white" />
+                <Sparkles className="w-8 h-8 text-white" />
               </div>
               <h3 className={`text-2xl font-bold text-neutral-900 mb-4 ${isRTL ? 'font-arabic' : ''}`}>
                 {isRTL ? 'استوديوهات تدريب المعلمين' : 'Teacher Training Impact Studios'}
@@ -192,8 +192,8 @@ export default function HomePage() {
               </div>
               <blockquote className={`text-xl md:text-2xl leading-relaxed ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
                 {isRTL
-                  ? "هذا البرنامج يهدف إلى جلب المستقبل إلى غاباتنا وصحاراءنا وحدائقنا. من خلال دمج القوة التحليلية للذكاء الاصطناعي مع جمال وتعقيد الطبيعة، نحن نقدم للمعلمين مجموعة أدوات تشجع الفضول وحل المشكلات والإشراف البيئي."
-                  : "This program is about bringing the future into our forests, deserts, and parks. By combining AI's analytical power with the beauty and complexity of nature, we're giving educators a toolkit that encourages curiosity, problem-solving, and environmental stewardship."
+                  ? "هذا البرنامج يهدف إلى جلب المستقبل إلى غاباتنا وصحاراءنا وحدائقنا. من خلال دمج القوة التحليلية للذكاء الاصطناعي مع جمال وتعقيد الطبيعة، نحن نقدم للمعلمين مجموعة أدوات تشجع الفضول وحل المشكلات وحب الطبيعة."
+                  : "This program is about bringing the future into our forests, deserts, and parks. By combining AI's analytical power with the beauty and complexity of nature, we're giving educators a toolkit that encourages curiosity, problem-solving, and love for nature."
                 }
               </blockquote>
             </div>
@@ -353,7 +353,7 @@ export default function HomePage() {
             {/* Feature 3 */}
             <div className="group p-8 bg-gradient-to-br from-earth-50 to-white rounded-2xl border border-earth-100 hover:border-earth-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
               <div className="w-16 h-16 bg-gradient-earth rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Upload className="w-8 h-8 text-white" />
+                <MessageCircle className="w-8 h-8 text-white" />
               </div>
               <h3 className={`text-2xl font-bold text-neutral-900 mb-4 ${isRTL ? 'font-arabic text-right' : ''}`}>
                 {isRTL ? 'محتوى جاهز للاستخدام' : 'Ready-to-Use Content'}
