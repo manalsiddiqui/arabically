@@ -2,7 +2,7 @@ import { GetStaticProps } from 'next'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { BookOpen, MessageCircle, Upload, Sparkles } from 'lucide-react'
+import { BookOpen, MessageCircle, Upload, Sparkles, Target, Users } from 'lucide-react'
 
 export default function HomePage() {
   const router = useRouter()
@@ -37,53 +37,63 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="relative pt-16 pb-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className={`text-5xl md:text-7xl font-bold mb-8 ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
-              <span className="bg-gradient-to-r from-primary-600 via-earth-600 to-accent-600 bg-clip-text text-transparent">
-                {isRTL ? 'مساعدك الذكي' : 'Your AI Teaching'}
-              </span>
-              <br />
-              <span className="text-neutral-900">
-                {isRTL ? 'لتدريس العربية' : 'Assistant for Arabic'}
-              </span>
+        <div className="relative z-10 max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <div className="space-y-8">
+            <h1 className={`text-5xl md:text-7xl font-bold text-neutral-900 leading-tight ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+              {isRTL ? (
+                <>
+                  <span className="block">هدايا</span>
+                  <span className="block bg-gradient-desert bg-clip-text text-transparent">من اللغة إلى الإرث</span>
+                </>
+              ) : (
+                <>
+                  <span className="block">HedAia</span>
+                  <span className="block bg-gradient-desert bg-clip-text text-transparent">From Language to Legacy</span>
+                </>
+              )}
             </h1>
-
-            <p className={`text-xl md:text-2xl text-neutral-600 mb-12 max-w-4xl mx-auto leading-relaxed ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
-              {isRTL
-                ? 'مدرب من قبل معلمين خبراء، مصمم خصيصاً لمعلمي اللغة العربية'
-                : 'Trained by expert teachers, designed specifically for Arabic language educators'
+            
+            <p className={`text-xl md:text-2xl text-neutral-700 max-w-3xl mx-auto leading-relaxed ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+              {isRTL 
+                ? 'مساعد ذكي مبتكر يدمج بين تعليم اللغة العربية والذكاء الاصطناعي والتعلم القائم على الطبيعة، مصمم لتزويد المعلمين بأدوات تشجع الفضول وحل المشكلات والإشراف البيئي'
+                : 'An innovative AI assistant that bridges Arabic language education, artificial intelligence, and nature-based learning, designed to equip educators with tools that encourage curiosity, problem-solving, and environmental stewardship'
               }
             </p>
 
-            <div className="flex justify-center items-center mb-16">
+            <div className="flex justify-center">
               <Link
                 href="/chat"
                 className={`group px-12 py-5 bg-gradient-desert text-white rounded-xl font-semibold text-xl hover:from-primary-700 hover:to-earth-700 transform hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-2xl flex items-center gap-4 ${isRTL ? 'font-arabic' : ''}`}
               >
                 <MessageCircle className="w-7 h-7" />
-                {isRTL ? 'تحدث مع هدايا' : 'Chat with HedAia'}
+                {isRTL ? 'ابدأ رحلة التعلم' : 'Start Your Learning Journey'}
               </Link>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-neutral-600">
+            {/* Enhanced Trust Indicators */}
+            <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-neutral-600">
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-secondary-200">
                 <div className="w-2 h-2 bg-accent-500 rounded-full"></div>
                 <span className={isRTL ? 'font-arabic' : ''}>
-                  {isRTL ? 'تعلم تفاعلي' : 'Interactive Learning'}
+                  {isRTL ? 'التعلم القائم على الطبيعة' : 'Nature-Based Learning'}
                 </span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-secondary-200">
                 <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
                 <span className={isRTL ? 'font-arabic' : ''}>
-                  {isRTL ? 'مدرب من قبل معلمين' : 'Teacher Trained'}
+                  {isRTL ? 'مدعوم بالذكاء الاصطناعي' : 'AI-Powered'}
                 </span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-secondary-200">
                 <div className="w-2 h-2 bg-earth-500 rounded-full"></div>
                 <span className={isRTL ? 'font-arabic' : ''}>
-                  {isRTL ? 'متخصص للعربية' : 'Arabic Specialist'}
+                  {isRTL ? 'تطوير اللغة العربية' : 'Arabic Language Development'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-secondary-200">
+                <div className="w-2 h-2 bg-secondary-500 rounded-full"></div>
+                <span className={isRTL ? 'font-arabic' : ''}>
+                  {isRTL ? 'إطار اللعب الموجه' : 'Guided Play Framework'}
                 </span>
               </div>
             </div>
@@ -94,6 +104,103 @@ export default function HomePage() {
         <div className="absolute top-20 left-10 w-20 h-20 bg-primary-200 rounded-full opacity-30 animate-bounce"></div>
         <div className="absolute top-40 right-20 w-16 h-16 bg-secondary-200 rounded-full opacity-30 animate-bounce" style={{ animationDelay: '1s' }}></div>
         <div className="absolute bottom-20 left-20 w-12 h-12 bg-accent-200 rounded-full opacity-30 animate-bounce" style={{ animationDelay: '2s' }}></div>
+      </section>
+
+      {/* Desert School Program Features */}
+      <section className="py-20 bg-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-block px-4 py-2 bg-gradient-desert text-white rounded-full text-sm font-semibold mb-4">
+              {isRTL ? 'برنامج مدرسة الصحراء' : 'Desert School Program'}
+            </div>
+            <h2 className={`text-4xl md:text-5xl font-bold text-neutral-900 mb-6 ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+              {isRTL ? 'تجارب تعلم تفاعلية ومتكاملة' : 'Interactive & Tech-Integrated Learning Experiences'}
+            </h2>
+            <p className={`text-xl text-neutral-600 max-w-3xl mx-auto ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+              {isRTL
+                ? 'برنامج مبتكر يدمج التعليم البيئي وتطوير اللغة العربية والذكاء الاصطناعي'
+                : 'An innovative program that bridges environmental education, Arabic language development, and artificial intelligence'
+              }
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {/* Under the Ghaf Reading Clubs */}
+            <div className="bg-gradient-to-br from-accent-50 to-primary-50 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
+              <div className="w-16 h-16 bg-gradient-to-r from-accent-500 to-primary-500 rounded-full flex items-center justify-center mb-6">
+                <BookOpen className="w-8 h-8 text-white" />
+              </div>
+              <h3 className={`text-2xl font-bold text-neutral-900 mb-4 ${isRTL ? 'font-arabic' : ''}`}>
+                {isRTL ? 'نوادي القراءة تحت الغاف' : 'Under the Ghaf Reading Clubs'}
+              </h3>
+              <p className={`text-neutral-600 leading-relaxed ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+                {isRTL 
+                  ? 'العمل مع القصص العربية الأصلية لتحسين مستوى القراءة والكتابة من خلال تجارب تعلم غامرة'
+                  : 'Work with authentic Arabic storybooks to improve literacy levels through immersive learning experiences'
+                }
+              </p>
+            </div>
+
+            {/* Nature Expeditions Toolkit */}
+            <div className="bg-gradient-to-br from-earth-50 to-secondary-50 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
+              <div className="w-16 h-16 bg-gradient-to-r from-earth-500 to-secondary-500 rounded-full flex items-center justify-center mb-6">
+                <Target className="w-8 h-8 text-white" />
+              </div>
+              <h3 className={`text-2xl font-bold text-neutral-900 mb-4 ${isRTL ? 'font-arabic' : ''}`}>
+                {isRTL ? 'مجموعة أدوات الرحلات الطبيعية' : 'Nature Expeditions Toolkit'}
+              </h3>
+              <p className={`text-neutral-600 leading-relaxed ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+                {isRTL 
+                  ? 'دمج المناهج الحالية مع الأنشطة الثقافية والطبيعية باللغة العربية مثل تمارين بناء المفردات'
+                  : 'Combining existing curricula with cultural and nature-based activities in Arabic such as vocabulary-building exercises'
+                }
+              </p>
+            </div>
+
+            {/* Teacher Training Impact Studios */}
+            <div className="bg-gradient-to-br from-primary-50 to-accent-50 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
+              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center mb-6">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <h3 className={`text-2xl font-bold text-neutral-900 mb-4 ${isRTL ? 'font-arabic' : ''}`}>
+                {isRTL ? 'استوديوهات تدريب المعلمين' : 'Teacher Training Impact Studios'}
+              </h3>
+              <p className={`text-neutral-600 leading-relaxed ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+                {isRTL 
+                  ? 'مساحة يتم فيها تدريب المعلمين على توفير استراتيجيات اللعب الموجه داخل وخارج الفصل الدراسي'
+                  : 'A space where educators are trained on providing guided play strategies both indoor and outdoor'
+                }
+              </p>
+            </div>
+          </div>
+
+          {/* Quote from CEO */}
+          <div className="bg-gradient-to-r from-primary-500 to-earth-500 rounded-2xl p-8 md:p-12 text-white relative overflow-hidden">
+            <div className="relative z-10">
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
+                  <MessageCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className={`font-bold text-lg ${isRTL ? 'font-arabic' : ''}`}>
+                    Dr. Juwaeriah Siddiqui
+                  </h4>
+                  <p className={`text-primary-100 ${isRTL ? 'font-arabic' : ''}`}>
+                    {isRTL ? 'الرئيس التنفيذي، أرابيكالي' : 'CEO, Arabically'}
+                  </p>
+                </div>
+              </div>
+              <blockquote className={`text-xl md:text-2xl leading-relaxed ${isRTL ? 'font-arabic' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
+                {isRTL
+                  ? "هذا البرنامج يهدف إلى جلب المستقبل إلى غاباتنا وصحاراءنا وحدائقنا. من خلال دمج القوة التحليلية للذكاء الاصطناعي مع جمال وتعقيد الطبيعة، نحن نقدم للمعلمين مجموعة أدوات تشجع الفضول وحل المشكلات والإشراف البيئي."
+                  : "This program is about bringing the future into our forests, deserts, and parks. By combining AI's analytical power with the beauty and complexity of nature, we're giving educators a toolkit that encourages curiosity, problem-solving, and environmental stewardship."
+                }
+              </blockquote>
+            </div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-10 rounded-full translate-y-12 -translate-x-12"></div>
+          </div>
+        </div>
       </section>
 
       {/* How It Works Section */}
