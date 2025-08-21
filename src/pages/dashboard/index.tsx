@@ -85,6 +85,41 @@ export default function DashboardPage() {
     })
   }
 
+  const handleDelete = async (id: string, title: string) => {
+    const confirmMessage = isRTL 
+      ? `هل أنت متأكد من حذف "${title}"؟`
+      : `Are you sure you want to delete "${title}"?`
+    
+    if (!confirm(confirmMessage)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/lesson-plans?id=${id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        // Remove from local state
+        setLessonPlans(prev => prev.filter(plan => plan.id !== id))
+        
+        // Show success message
+        const successMessage = isRTL 
+          ? 'تم حذف الدرس بنجاح'
+          : 'Lesson plan deleted successfully'
+        alert(successMessage)
+      } else {
+        throw new Error('Failed to delete')
+      }
+    } catch (error) {
+      console.error('Delete error:', error)
+      const errorMessage = isRTL 
+        ? 'فشل في حذف الدرس'
+        : 'Failed to delete lesson plan'
+      alert(errorMessage)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       {/* Header */}
@@ -199,7 +234,10 @@ export default function DashboardPage() {
                     <FileIcon className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="flex gap-2">
-                    <button className="w-8 h-8 bg-gray-100 hover:bg-red-100 rounded-lg flex items-center justify-center transition-colors group">
+                    <button 
+                      onClick={() => handleDelete(plan.id, plan.title)}
+                      className="w-8 h-8 bg-gray-100 hover:bg-red-100 rounded-lg flex items-center justify-center transition-colors group"
+                    >
                       <Trash2 className="w-4 h-4 text-gray-500 group-hover:text-red-500" />
                     </button>
                   </div>
