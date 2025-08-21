@@ -75,28 +75,38 @@ export default function UploadModal({ isOpen, onClose, onUpload, isRTL }: Upload
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Validate form
     if (!selectedFile) {
-      toast.error('Please select a file to upload')
+      toast.error(isRTL ? 'يرجى اختيار ملف للرفع' : 'Please select a file to upload')
       return
     }
 
     if (!formData.title.trim()) {
-      toast.error('Please enter a lesson title')
+      toast.error(isRTL ? 'يرجى إدخال عنوان الدرس' : 'Please enter a lesson title')
       return
     }
 
     setIsUploading(true)
-    setUploadProgress(0)
+    setUploadProgress(10)
 
     try {
+      console.log('🚀 Starting upload process...')
+      
       // Extract text from file
-      setUploadProgress(25)
+      setUploadProgress(20)
       const { text, metadata } = await extractTextFromFile(selectedFile)
       
-      // Create form data for upload
+      if (!text || text.length < 10) {
+        throw new Error('File appears to be empty or unreadable. Please try a different file.')
+      }
+
+      console.log(`📄 Text extracted: ${text.length} characters`)
+      setUploadProgress(40)
+
+      // Prepare form data
       const uploadData = new FormData()
       uploadData.append('file', selectedFile)
-      uploadData.append('title', formData.title.trim())
+      uploadData.append('title', formData.title)
       uploadData.append('ageGroup', '0-6') // Default age group for early childhood
       uploadData.append('subject', formData.subject)
       uploadData.append('tags', formData.tags)
@@ -105,21 +115,40 @@ export default function UploadModal({ isOpen, onClose, onUpload, isRTL }: Upload
       uploadData.append('wordCount', metadata.wordCount.toString())
       uploadData.append('detectedLanguage', metadata.language || 'en')
 
-      setUploadProgress(50)
+      setUploadProgress(60)
+      console.log('📤 Uploading to server...')
 
-      // Upload to API
+      // Upload to API with timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minute timeout
+
       const response = await fetch('/api/lesson-plans/upload', {
         method: 'POST',
         body: uploadData,
+        signal: controller.signal
       })
 
+      clearTimeout(timeoutId)
+
       if (!response.ok) {
-        throw new Error('Upload failed')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Upload failed with status: ${response.status}`)
       }
 
-      const lessonPlan = await response.json()
+      const result = await response.json()
+      setUploadProgress(90)
+
+      // Show warning if there was a processing issue
+      if (result.warning) {
+        toast(`⚠️ Upload successful but: ${result.warning}`, { 
+          duration: 6000,
+          icon: '⚠️' 
+        })
+      } else {
+        toast.success(t('upload.success'))
+      }
+      
       setUploadProgress(100)
-      toast.success(t('upload.success'))
       
       // Reset form
       setSelectedFile(null)
@@ -130,10 +159,31 @@ export default function UploadModal({ isOpen, onClose, onUpload, isRTL }: Upload
         language: 'ar',
       })
       
-      onUpload(lessonPlan)
-    } catch (error) {
-      console.error('Upload error:', error)
-      toast.error(t('upload.error'))
+      console.log('✅ Upload completed successfully')
+      onUpload(result)
+
+      // Show embedding progress message
+      toast('🧠 Processing lesson content for AI chat...', {
+        duration: 4000,
+        icon: '🧠'
+      })
+      
+    } catch (error: any) {
+      console.error('❌ Upload error:', error)
+      
+      let errorMessage = t('upload.error')
+      
+      if (error.name === 'AbortError') {
+        errorMessage = 'Upload timeout. Please try with a smaller file.'
+      } else if (error.message.includes('empty or unreadable')) {
+        errorMessage = 'File content could not be read. Please try a different file format.'
+      } else if (error.message.includes('too large')) {
+        errorMessage = 'File is too large. Please try a smaller file (max 50MB).'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      toast.error(errorMessage, { duration: 6000 })
     } finally {
       setIsUploading(false)
       setUploadProgress(0)

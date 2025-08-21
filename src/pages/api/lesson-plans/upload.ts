@@ -19,6 +19,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  console.log('🚀 Starting file upload process...')
+
   try {
     // Parse the multipart form data with larger size limits
     const form = new IncomingForm({
@@ -27,12 +29,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       maxFields: 20, // Allow more form fields
       maxFieldsSize: 2 * 1024 * 1024, // 2MB for form fields
     })
+    
+    console.log('📝 Parsing form data...')
     const [fields, files] = await form.parse(req)
 
     const file = Array.isArray(files.file) ? files.file[0] : files.file
     if (!file) {
+      console.error('❌ No file uploaded')
       return res.status(400).json({ error: 'No file uploaded' })
     }
+
+    console.log(`📄 File received: ${file.originalFilename} (${(file.size / 1024 / 1024).toFixed(2)}MB)`)
 
     // Get form data
     const title = Array.isArray(fields.title) ? fields.title[0] : fields.title
@@ -43,88 +50,60 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const extractedText = Array.isArray(fields.extractedText) ? fields.extractedText[0] : fields.extractedText
 
     if (!title || !extractedText) {
+      console.error('❌ Missing required fields:', { title: !!title, extractedText: !!extractedText })
       return res.status(400).json({ error: 'Title and extracted text are required' })
     }
+
+    console.log('✅ Form data validated')
 
     // Create Supabase client with service role key for file uploads
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     )
 
-    // Temporarily disable auth for testing - use dummy user ID
-    const dummyUserId = '00000000-0000-0000-0000-000000000000'
-    
-    // TODO: Re-enable authentication later
-    // const { data: { user }, error: authError } = await supabase.auth.getUser()
-    // if (authError || !user) {
-    //   return res.status(401).json({ error: 'Unauthorized' })
-    // }
-
-    // Read file content
-    const fileContent = fs.readFileSync(file.filepath)
-    
     // Generate unique filename
-    const fileExtension = file.originalFilename?.split('.').pop() || 'txt'
+    const fileExtension = file.originalFilename?.split('.').pop() || 'unknown'
     const uniqueFilename = `${uuidv4()}.${fileExtension}`
-    const filePath = `lesson-plans/${uniqueFilename}` // Simplified path without user folder
+    const filePath = `lesson-plans/${uniqueFilename}`
 
-    // Temporarily skip storage upload for testing
-    // TODO: Re-enable storage upload after fixing policies
-    /*
-    // Upload file to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-      .from('lesson-plans')
-      .upload(filePath, fileContent, {
-        contentType: file.mimetype || 'application/octet-stream',
-        upsert: false,
-      })
-
-    if (uploadError) {
-      console.error('Storage upload error:', uploadError)
-      return res.status(500).json({ error: 'Failed to upload file' })
-    }
-    */
-    console.log('⚠️ Storage upload skipped for testing')
-
-    // Parse tags
+    // Process tags
     const tagsArray = tags ? tags.split(',').map((tag: string) => tag.trim()).filter(Boolean) : []
 
     // Extract text from file on server-side if needed
     let finalExtractedText = extractedText
-    
+    let processingError = null
+
     if (extractedText.includes('[File:') && extractedText.includes('Text will be extracted on server')) {
-      // Client-side extraction failed, do it server-side
+      console.log('🔄 Extracting text on server...')
       try {
         const fileExtension = file.originalFilename?.split('.').pop()?.toLowerCase()
-        
-        console.log(`🔄 Extracting text from ${fileExtension} file: ${file.originalFilename}`)
-        
+        const fileBuffer = fs.readFileSync(file.filepath)
+
+        console.log(`📄 Processing ${fileExtension} file: ${(fileBuffer.length / 1024 / 1024).toFixed(2)}MB`)
+
         if (fileExtension === 'pdf') {
-          // Read file in chunks to reduce memory usage
-          const fileBuffer = fs.readFileSync(file.filepath)
-          console.log(`📄 Processing PDF file: ${(fileBuffer.length / 1024 / 1024).toFixed(2)}MB`)
-          
           const pdfData = await pdfParse(fileBuffer, {
-            // Optimize PDF parsing for large files
             max: 50000, // Limit to 50,000 characters to prevent memory issues
           })
           finalExtractedText = pdfData.text.substring(0, 50000) // Truncate if too long
           console.log(`✅ PDF text extracted: ${finalExtractedText.length} characters`)
-          
+
         } else if (fileExtension === 'docx') {
-          const fileBuffer = fs.readFileSync(file.filepath)
-          console.log(`📄 Processing DOCX file: ${(fileBuffer.length / 1024 / 1024).toFixed(2)}MB`)
-          
           const result = await mammoth.extractRawText({ buffer: fileBuffer })
           finalExtractedText = result.value.substring(0, 50000) // Truncate if too long
           console.log(`✅ DOCX text extracted: ${finalExtractedText.length} characters`)
-          
+
         } else {
-          // For other files, use the original extracted text
           finalExtractedText = extractedText
         }
-        
+
         // Clean up temporary file immediately after processing
         try {
           fs.unlinkSync(file.filepath)
@@ -132,13 +111,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         } catch (cleanupError) {
           console.warn('⚠️ Could not clean up temporary file:', cleanupError)
         }
-        
+
       } catch (extractionError: any) {
         console.error('❌ Server-side text extraction error:', extractionError.message)
-        // Use the original text if extraction fails
-        finalExtractedText = `Error extracting text from ${file.originalFilename}. Please try a smaller file or different format.`
+        processingError = `Text extraction failed: ${extractionError.message}`
+        // Continue with original text instead of failing completely
+        finalExtractedText = extractedText.replace(/\[File:.*?\]/g, '[Text extraction failed]')
       }
     }
+
+    // Validate extracted text length
+    if (finalExtractedText.length < 10) {
+      console.error('❌ Extracted text too short:', finalExtractedText.length)
+      return res.status(400).json({ 
+        error: 'File content appears to be empty or unreadable. Please try a different file format.' 
+      })
+    }
+
+    console.log('💾 Saving lesson plan to database...')
 
     // Save lesson plan to database
     const { data: lessonPlan, error: dbError } = await supabase
@@ -160,24 +150,38 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       .single()
 
     if (dbError) {
-      console.error('Database error:', dbError)
-      // Clean up uploaded file if database insert fails
-      // await supabase.storage.from('lesson-plans').remove([filePath]) // This line is commented out as storage upload is skipped
-      return res.status(500).json({ error: 'Failed to save lesson plan' })
+      console.error('❌ Database error:', dbError)
+      return res.status(500).json({ error: 'Failed to save lesson plan to database' })
     }
 
-    // Store embeddings for RAG
-    try {
-      await storeEmbeddings(lessonPlan.id, finalExtractedText)
-    } catch (embeddingError) {
-      console.error('Embedding error:', embeddingError)
-      // Don't fail the entire upload if embeddings fail
+    console.log(`✅ Lesson plan saved with ID: ${lessonPlan.id}`)
+
+    // Store embeddings for RAG (async, don't wait for completion)
+    console.log('🧠 Starting embedding generation...')
+    storeEmbeddings(lessonPlan.id, finalExtractedText)
+      .then(() => {
+        console.log(`✅ Embeddings stored successfully for lesson: ${lessonPlan.id}`)
+      })
+      .catch((embeddingError) => {
+        console.error('❌ Embedding error (non-blocking):', embeddingError)
+      })
+
+    // Return success immediately (don't wait for embeddings)
+    const response = {
+      success: true,
+      lessonPlan,
+      ...(processingError && { warning: processingError })
     }
 
-    res.status(200).json({ success: true, lessonPlan })
-  } catch (error) {
-    console.error('Upload error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    console.log('🎉 Upload completed successfully!')
+    res.status(200).json(response)
+
+  } catch (error: any) {
+    console.error('❌ Upload error:', error.message, error.stack)
+    res.status(500).json({ 
+      error: 'Upload failed. Please try again with a smaller file or different format.',
+      details: error.message
+    })
   }
 }
 

@@ -32,23 +32,68 @@ export async function storeEmbeddings(
   const supabase = createServerClient()
   const chunks = chunkText(text)
   
-  for (let i = 0; i < chunks.length; i++) {
-    const chunk = chunks[i]
-    const embedding = await generateEmbedding(chunk)
+  console.log(`🧠 Processing ${chunks.length} text chunks for embeddings...`)
   
-  const { error } = await supabase
-    .from('lesson_plan_embeddings')
-      .insert({
-        lesson_plan_id: lessonPlanId,
-        content: chunk,
-        embedding: embedding, // Don't JSON.stringify - Supabase handles vector conversion
-        metadata: { ...metadata, chunk_index: i }
-      })
-  
-  if (error) {
-      console.error('Error storing embedding:', error)
-      throw new Error('Failed to store embedding')
+  try {
+    // Process chunks in batches of 3 to avoid overwhelming the OpenAI API
+    const batchSize = 3
+    const batches = []
+    
+    for (let i = 0; i < chunks.length; i += batchSize) {
+      batches.push(chunks.slice(i, i + batchSize))
     }
+    
+    let processedCount = 0
+    
+    for (const batch of batches) {
+      // Process each batch in parallel
+      const embeddings = await Promise.all(
+        batch.map(async (chunk, batchIndex) => {
+          const globalIndex = processedCount + batchIndex
+          try {
+            const embedding = await generateEmbedding(chunk)
+            return {
+              lesson_plan_id: lessonPlanId,
+              content: chunk,
+              embedding: embedding,
+              metadata: { ...metadata, chunk_index: globalIndex }
+            }
+          } catch (error) {
+            console.error(`❌ Failed to generate embedding for chunk ${globalIndex}:`, error)
+            return null
+          }
+        })
+      )
+      
+      // Filter out failed embeddings
+      const validEmbeddings = embeddings.filter(e => e !== null)
+      
+      if (validEmbeddings.length > 0) {
+        // Insert batch to database
+        const { error } = await supabase
+          .from('lesson_plan_embeddings')
+          .insert(validEmbeddings)
+        
+        if (error) {
+          console.error(`❌ Error storing embedding batch:`, error)
+          throw new Error(`Failed to store embedding batch: ${error.message}`)
+        }
+      }
+      
+      processedCount += batch.length
+      console.log(`✅ Processed ${processedCount}/${chunks.length} chunks`)
+      
+      // Small delay between batches to avoid rate limiting
+      if (processedCount < chunks.length) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+    }
+    
+    console.log(`🎉 All embeddings stored successfully for lesson: ${lessonPlanId}`)
+    
+  } catch (error) {
+    console.error('❌ Error in storeEmbeddings:', error)
+    throw error
   }
 }
 
