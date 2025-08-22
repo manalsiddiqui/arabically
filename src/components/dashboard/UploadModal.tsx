@@ -96,11 +96,14 @@ export default function UploadModal({ isOpen, onClose, onUpload, isRTL }: Upload
       setUploadProgress(20)
       const { text, metadata } = await extractTextFromFile(selectedFile)
       
-      if (!text || text.length < 10) {
+      // For files that need server-side processing, allow the placeholder text
+      const needsServerProcessing = text.includes('Text will be extracted on server')
+      
+      if (!text || (!needsServerProcessing && text.length < 10)) {
         throw new Error('File appears to be empty or unreadable. Please try a different file.')
       }
 
-      console.log(`📄 Text extracted: ${text.length} characters`)
+      console.log(`📄 Text extracted: ${text.length} characters${needsServerProcessing ? ' (server processing needed)' : ''}`)
       setUploadProgress(40)
 
       // Prepare form data

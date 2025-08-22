@@ -92,11 +92,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           const pdfData = await pdfParse(fileBuffer, {
             max: 50000, // Limit to 50,000 characters to prevent memory issues
           })
+          
+          if (!pdfData.text || pdfData.text.trim().length === 0) {
+            throw new Error('PDF appears to contain no readable text. It might be image-based or corrupted.')
+          }
+          
           finalExtractedText = pdfData.text.substring(0, 50000) // Truncate if too long
           console.log(`✅ PDF text extracted: ${finalExtractedText.length} characters`)
 
         } else if (fileExtension === 'docx') {
           const result = await mammoth.extractRawText({ buffer: fileBuffer })
+          
+          if (!result.value || result.value.trim().length === 0) {
+            throw new Error('DOCX appears to contain no readable text. It might be corrupted.')
+          }
+          
           finalExtractedText = result.value.substring(0, 50000) // Truncate if too long
           console.log(`✅ DOCX text extracted: ${finalExtractedText.length} characters`)
 
@@ -115,14 +125,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       } catch (extractionError: any) {
         console.error('❌ Server-side text extraction error:', extractionError.message)
         processingError = `Text extraction failed: ${extractionError.message}`
-        // Continue with original text instead of failing completely
-        finalExtractedText = extractedText.replace(/\[File:.*?\]/g, '[Text extraction failed]')
+        
+        // Create a meaningful fallback text instead of just error message
+        const fileName = file.originalFilename || 'unknown'
+        const fileSize = `${(file.size / 1024).toFixed(1)}KB`
+        finalExtractedText = `[File: ${fileName}] - Content extraction failed. File size: ${fileSize}. Please ensure the file contains readable text and try again.`
+        
+        console.log(`⚠️ Using fallback text: ${finalExtractedText.length} characters`)
       }
     }
 
     // Validate extracted text length
-    if (finalExtractedText.length < 10) {
+    const isServerProcessedFile = extractedText.includes('Text will be extracted on server')
+    const minLength = isServerProcessedFile ? 5 : 10 // More lenient for server-processed files
+    
+    if (finalExtractedText.length < minLength) {
       console.error('❌ Extracted text too short:', finalExtractedText.length)
+      
+      // If it's a server-processed file that failed, provide more specific error
+      if (isServerProcessedFile && processingError) {
+        return res.status(400).json({ 
+          error: `Unable to extract text from ${file.originalFilename}. ${processingError}. Please try a different file or format.`
+        })
+      }
+      
       return res.status(400).json({ 
         error: 'File content appears to be empty or unreadable. Please try a different file format.' 
       })
