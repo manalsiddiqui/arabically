@@ -16,7 +16,12 @@ import {
   Leaf,
   Sprout,
   Download,
-  Eye
+  Eye,
+  Search,
+  Home,
+  Puzzle,
+  Heart,
+  Award
 } from 'lucide-react'
 
 const modules = [
@@ -27,26 +32,27 @@ const modules = [
       ar: 'خريطة المنهج'
     },
     description: {
-      en: 'Complete overview of the UAE Trees learning journey',
-      ar: 'نظرة شاملة على رحلة تعلم أشجار الإمارات'
+      en: 'Complete overview of the UAE Trees learning journey for Term 1',
+      ar: 'نظرة شاملة على رحلة تعلم أشجار الإمارات للفصل الأول'
     },
     icon: MapPin,
     color: 'from-blue-500 to-indigo-600',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
     type: 'overview',
-    duration: '30 min',
-    activities: 8
+    duration: 'Overview',
+    activities: 6,
+    moduleNumber: null
   },
   {
     id: 'module-1',
     title: {
-      en: 'Module 1: What Grows in Our Desert',
-      ar: 'الوحدة الأولى: ما ينمو في صحرائنا'
+      en: 'Module 1: What Grows in Our Desert?',
+      ar: 'الوحدة الأولى: ما ينمو في صحرائنا؟'
     },
     description: {
-      en: 'Discover the amazing plants and trees that thrive in the UAE desert environment',
-      ar: 'اكتشف النباتات والأشجار المذهلة التي تنمو في البيئة الصحراوية للإمارات'
+      en: 'Introduction to UAE trees and their importance. Children will be able to spot and name local tree species in their surroundings.',
+      ar: 'مقدمة عن أشجار الإمارات وأهميتها. سيتمكن الأطفال من تحديد وتسمية أنواع الأشجار المحلية في بيئتهم.'
     },
     icon: Sprout,
     color: 'from-green-500 to-emerald-600',
@@ -54,44 +60,138 @@ const modules = [
     borderColor: 'border-green-200',
     type: 'module',
     duration: '45 min',
-    activities: 12,
-    topics: ['Desert Plants', 'Adaptation', 'Local Flora']
+    activities: 3,
+    moduleNumber: 1,
+    coreActivity: 'Nature walk in a park/desert',
+    focus: 'Introduction to UAE trees and their importance',
+    skillsDeveloped: ['Cognitive: Observation', 'Language: Vocabulary', 'Environmental awareness']
   },
   {
     id: 'module-2',
     title: {
-      en: 'Module 2: Parts of a Tree',
-      ar: 'الوحدة الثانية: أجزاء الشجرة'
+      en: 'Module 2: Parts of a Tree (Local Focus)',
+      ar: 'الوحدة الثانية: أجزاء الشجرة (تركيز محلي)'
     },
     description: {
-      en: 'Learn about roots, trunk, branches, leaves and how each part helps the tree survive',
-      ar: 'تعلم عن الجذور والجذع والأغصان والأوراق وكيف يساعد كل جزء الشجرة على البقاء'
+      en: 'Recognizing roots, trunk, branches, leaves, flowers, and fruits on Ghaf/Date Palm. Children will be able to name each part in Arabic and describe desert tree adaptations.',
+      ar: 'التعرف على الجذور والجذع والأغصان والأوراق والزهور والثمار في الغاف/نخيل التمر. سيتمكن الأطفال من تسمية كل جزء بالعربية ووصف تكيفات أشجار الصحراء.'
     },
     icon: TreePine,
     color: 'from-orange-500 to-amber-600',
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-200',
     type: 'module',
+    duration: '45 min',
+    activities: 4,
+    moduleNumber: 2,
+    coreActivity: 'Scavenger Hunt: Finding and labeling tree parts',
+    focus: 'Recognizing tree parts and adaptations',
+    skillsDeveloped: ['Cognitive: Classification', 'Language: Naming', 'Sensory: Touch & sight']
+  },
+  {
+    id: 'module-3',
+    title: {
+      en: 'Module 3: Trees as Homes in the Desert',
+      ar: 'الوحدة الثالثة: الأشجار كبيوت في الصحراء'
+    },
+    description: {
+      en: 'How UAE desert trees benefit birds and animals. Children will name animals/insects and the way they use desert trees for shelter and describe animals with thick tongues.',
+      ar: 'كيف تفيد أشجار الصحراء في الإمارات الطيور والحيوانات. سيسمي الأطفال الحيوانات/الحشرات والطريقة التي تستخدم بها أشجار الصحراء للمأوى.'
+    },
+    icon: Home,
+    color: 'from-purple-500 to-violet-600',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
+    type: 'module',
     duration: '40 min',
-    activities: 10,
-    topics: ['Tree Anatomy', 'Functions', 'Growth']
+    activities: 3,
+    moduleNumber: 3,
+    coreActivity: 'Observation & animal-tree matching card game',
+    focus: 'Trees as homes for desert animals',
+    skillsDeveloped: ['Cognitive: Matching & memory', 'Language: Animals and their habitats', 'Social: Cooperative play']
+  },
+  {
+    id: 'module-4',
+    title: {
+      en: 'Module 4: How Desert Trees Grow and Survive',
+      ar: 'الوحدة الرابعة: كيف تنمو أشجار الصحراء وتبقى على قيد الحياة'
+    },
+    description: {
+      en: 'Understanding tree adaptations to heat & little water. Children will explain how roots, leaves, and flower adapt and survive in harsh climates.',
+      ar: 'فهم تكيفات الأشجار مع الحرارة والمياه القليلة. سيشرح الأطفال كيف تتكيف الجذور والأوراق والزهور وتنجو في المناخ القاسي.'
+    },
+    icon: Puzzle,
+    color: 'from-teal-500 to-cyan-600',
+    bgColor: 'bg-teal-50',
+    borderColor: 'border-teal-200',
+    type: 'module',
+    duration: '50 min',
+    activities: 4,
+    moduleNumber: 4,
+    coreActivity: 'Tree Survival Game: kids drinking water, leaves making shade, cooling in sand',
+    focus: 'Understanding survival needs and adaptations',
+    skillsDeveloped: ['Cognitive: Understanding survival needs', 'Language: Contextual vocabulary', 'Physical: Gross motor & fine motor']
+  },
+  {
+    id: 'module-5',
+    title: {
+      en: 'Module 5: Why We Love Our Trees',
+      ar: 'الوحدة الخامسة: لماذا نحب أشجارنا'
+    },
+    description: {
+      en: 'Exploring uses of trees in UAE life (shade, fruit, wood, honey). Children will list uses of Ghafa, Sidr, and Date Palm in daily life.',
+      ar: 'استكشاف استخدامات الأشجار في حياة الإمارات (الظل، الفاكهة، الخشب، العسل). سيسرد الأطفال استخدامات الغافة والسدر ونخيل التمر في الحياة اليومية.'
+    },
+    icon: Heart,
+    color: 'from-pink-500 to-rose-600',
+    bgColor: 'bg-pink-50',
+    borderColor: 'border-pink-200',
+    type: 'module',
+    duration: '45 min',
+    activities: 4,
+    moduleNumber: 5,
+    coreActivity: 'Tree Gift Mystery bag: tree fruits, palm leaves, tree parts',
+    focus: 'Uses of trees in daily life',
+    skillsDeveloped: ['Cognitive: Categorizing & matching', 'Language: Vocabulary recall', 'Cultural awareness: UAE traditions']
+  },
+  {
+    id: 'module-6',
+    title: {
+      en: 'Module 6: Review & Celebration',
+      ar: 'الوحدة السادسة: مراجعة واحتفال'
+    },
+    description: {
+      en: 'Consolidating learning of local tree facts & vocabulary. Children will recall species, parts, and uses of UAE trees.',
+      ar: 'ترسيخ التعلم لحقائق الأشجار المحلية والمفردات. سيتذكر الأطفال الأنواع والأجزاء واستخدامات أشجار الإمارات.'
+    },
+    icon: Award,
+    color: 'from-yellow-500 to-orange-600',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-200',
+    type: 'module',
+    duration: '60 min',
+    activities: 5,
+    moduleNumber: 6,
+    coreActivity: 'Desert Tree Quiz Game & mini-exhibition',
+    focus: 'Review and celebration of learning',
+    skillsDeveloped: ['Cognitive: Recall & review', 'Language: Consolidation', 'Social: Presentation', 'Confidence: Presenting']
   }
 ]
 
 const stats = [
   {
     label: { en: 'Total Modules', ar: 'إجمالي الوحدات' },
-    value: '2',
+    value: '6',
     icon: BookOpen
   },
   {
     label: { en: 'Learning Hours', ar: 'ساعات التعلم' },
-    value: '3.5',
+    value: '4.5',
     icon: Clock
   },
   {
     label: { en: 'Activities', ar: 'الأنشطة' },
-    value: '30+',
+    value: '23+',
     icon: Play
   },
   {
@@ -132,8 +232,8 @@ export default function UAETreesPage() {
             </div>
             <p className={`text-sm text-gray-600 ${isRTL ? 'font-arabic' : ''}`}>
               {isRTL 
-                ? 'استكشف النباتات والأشجار المحلية في دولة الإمارات العربية المتحدة' 
-                : 'Explore the native plants and trees of the United Arab Emirates'
+                ? 'استكشف النباتات والأشجار المحلية في دولة الإمارات العربية المتحدة - الفصل الأول' 
+                : 'Explore the native plants and trees of the United Arab Emirates - Term 1'
               }
             </p>
           </div>
@@ -188,9 +288,14 @@ export default function UAETreesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {modules.map((module) => {
             const Icon = module.icon
+            const href = module.id === 'curriculum-map' 
+              ? '#' 
+              : `/lesson-plans/uae-trees/${module.id}`
+            
             return (
-              <div
+              <Link
                 key={module.id}
+                href={href}
                 className={`group relative overflow-hidden rounded-2xl border-2 ${module.borderColor} ${module.bgColor} p-8 hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer`}
               >
                 {/* Module Type Badge */}
@@ -202,7 +307,7 @@ export default function UAETreesPage() {
                   }`}>
                     {module.type === 'overview' 
                       ? (isRTL ? 'نظرة عامة' : 'Overview')
-                      : (isRTL ? 'وحدة' : 'Module')
+                      : (isRTL ? `الوحدة ${module.moduleNumber}` : `Module ${module.moduleNumber}`)
                     }
                   </div>
                 </div>
@@ -217,7 +322,7 @@ export default function UAETreesPage() {
                   <h3 className={`text-xl font-bold text-gray-900 mb-3 group-hover:text-gray-700 transition-colors ${isRTL ? 'font-arabic' : ''}`}>
                     {module.title[isRTL ? 'ar' : 'en']}
                   </h3>
-                  <p className={`text-gray-600 leading-relaxed mb-4 ${isRTL ? 'font-arabic' : ''}`}>
+                  <p className={`text-gray-600 leading-relaxed mb-4 text-sm ${isRTL ? 'font-arabic' : ''}`}>
                     {module.description[isRTL ? 'ar' : 'en']}
                   </p>
 
@@ -231,34 +336,22 @@ export default function UAETreesPage() {
                       <Play className="w-4 h-4" />
                       <span>{module.activities} {isRTL ? 'نشاط' : 'activities'}</span>
                     </div>
-                    {module.topics && (
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        {module.topics.map((topic, index) => (
-                          <span key={index} className="px-2 py-1 bg-white/70 text-xs font-medium rounded-full text-gray-600">
-                            {topic}
-                          </span>
-                        ))}
+                    {module.coreActivity && (
+                      <div className="mt-3 p-2 bg-white/70 rounded-lg">
+                        <div className="text-xs font-semibold text-gray-700 mb-1">
+                          {isRTL ? 'النشاط الأساسي' : 'Core Activity'}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {module.coreActivity}
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2 mt-6">
-                  <button className="flex-1 px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                    <Eye className="w-4 h-4" />
-                    <span className={isRTL ? 'font-arabic' : ''}>
-                      {isRTL ? 'عرض' : 'View'}
-                    </span>
-                  </button>
-                  <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center justify-center">
-                    <Download className="w-4 h-4" />
-                  </button>
-                </div>
-
                 {/* Gradient Overlay */}
                 <div className={`absolute inset-0 bg-gradient-to-r ${module.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
-              </div>
+              </Link>
             )
           })}
         </div>
