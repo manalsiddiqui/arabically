@@ -60,13 +60,21 @@ export default function HomePage() {
               }
             </p>
 
-            <div className="flex justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/chat"
-                className={`group px-12 py-5 bg-gradient-desert text-white rounded-xl font-semibold text-xl hover:from-primary-700 hover:to-earth-700 transform hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-2xl flex items-center gap-4 ${isRTL ? 'font-arabic' : ''}`}
+                className={`group px-8 py-4 bg-gradient-desert text-white rounded-xl font-semibold text-lg hover:from-primary-700 hover:to-earth-700 transform hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-2xl flex items-center gap-3 ${isRTL ? 'font-arabic' : ''}`}
               >
-                <MessageCircle className="w-7 h-7" />
-                {isRTL ? 'ابدأ رحلة التعلم' : 'Start Your Learning Journey'}
+                <MessageCircle className="w-6 h-6" />
+                {isRTL ? 'دردش مع هدايا' : 'Chat with HedAia'}
+              </Link>
+              
+              <Link
+                href="/lesson-plans"
+                className={`group px-8 py-4 bg-white border-2 border-primary-300 text-primary-700 rounded-xl font-semibold text-lg hover:bg-primary-50 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-3 ${isRTL ? 'font-arabic' : ''}`}
+              >
+                <BookOpen className="w-6 h-6" />
+                {isRTL ? 'استكشف المناهج' : 'Explore Curricula'}
               </Link>
             </div>
 
