@@ -9,16 +9,26 @@ export interface LessonPlanChunk {
   metadata: Record<string, any>
 }
 
-export function chunkText(text: string, chunkSize: number = 1000, overlap: number = 200): string[] {
+export function chunkText(text: string, chunkSize: number = 800, overlap: number = 100): string[] {
   const chunks: string[] = []
   let start = 0
   
-  while (start < text.length) {
-    const end = Math.min(start + chunkSize, text.length)
-    chunks.push(text.slice(start, end))
+  // Limit total text length to prevent memory issues
+  const maxTextLength = 10000 // 10KB max
+  const limitedText = text.length > maxTextLength ? text.substring(0, maxTextLength) : text
+  
+  while (start < limitedText.length) {
+    const end = Math.min(start + chunkSize, limitedText.length)
+    chunks.push(limitedText.slice(start, end))
     start = end - overlap
 
-    if (start >= text.length) break
+    if (start >= limitedText.length) break
+    
+    // Limit total chunks to prevent memory issues
+    if (chunks.length >= 20) {
+      console.log(`⚠️ Limiting to ${chunks.length} chunks to prevent memory issues`)
+      break
+    }
   }
 
   return chunks
@@ -35,8 +45,8 @@ export async function storeEmbeddings(
   console.log(`🧠 Processing ${chunks.length} text chunks for embeddings...`)
   
   try {
-    // Process chunks in batches of 3 to avoid overwhelming the OpenAI API
-    const batchSize = 3
+    // Process chunks in batches of 2 to avoid overwhelming the OpenAI API and memory
+    const batchSize = 2
     const batches = []
     
     for (let i = 0; i < chunks.length; i += batchSize) {
@@ -83,9 +93,9 @@ export async function storeEmbeddings(
       processedCount += batch.length
       console.log(`✅ Processed ${processedCount}/${chunks.length} chunks`)
       
-      // Small delay between batches to avoid rate limiting
+      // Delay between batches to avoid rate limiting and reduce memory pressure
       if (processedCount < chunks.length) {
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise(resolve => setTimeout(resolve, 2000)) // 2 second delay
       }
     }
     
